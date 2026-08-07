@@ -67,6 +67,7 @@ export type AppState = {
   clubs: Club[];
   clubMembers: Record<string, ClubMember[]>;
   teams: Team[];
+  teamMembers: Record<string, ClubMember[]>;
   events: ClubEvent[];
   eventRsvps: EventRsvp[];
   announcements: Announcement[];
@@ -141,6 +142,7 @@ function toTeam(db: Database, team: TeamRecord, viewer: UserRecord): Team {
     sport: team.sport,
     sponsorId: team.sponsorId,
     sponsorName: sponsor?.name ?? "Unassigned",
+    sponsorEmail: sponsor?.email ?? "",
     members: db.teamMemberships.filter((member) => member.teamId === team.id).length,
     ...(canSeeCode ? { code: team.joinCode } : {}),
   };
@@ -245,6 +247,7 @@ export async function loadState(): Promise<AppState> {
     clubs: [],
     clubMembers: {},
     teams: [],
+    teamMembers: {},
     events: [],
     eventRsvps: [],
     announcements: [],
@@ -343,6 +346,24 @@ export async function loadState(): Promise<AppState> {
         : joinedTeamIds.has(team.id),
   );
   const visibleTeamIds = new Set(visibleTeams.map((team) => team.id));
+  const teamMembers = Object.fromEntries(
+    visibleTeams.map((team) => [
+      team.id,
+      db.teamMemberships
+        .filter((membership) => membership.teamId === team.id)
+        .map((membership) => db.users.find((account) => account.id === membership.userId))
+        .filter(
+          (account): account is UserRecord =>
+            !!account && (account.id === user.id || account.prefs.directoryVisible),
+        )
+        .map((account) => ({
+          id: account.id,
+          name: account.name,
+          ...(account.grade ? { grade: account.grade } : {}),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    ]),
+  );
   const mine = db.memberships.filter((m) => m.userId === user.id);
   const myClubIds = mine.filter((m) => m.status === "member").map((m) => m.clubId);
 
@@ -516,6 +537,7 @@ export async function loadState(): Promise<AppState> {
     clubs: clubs.map((c) => toClub(db, c)),
     clubMembers,
     teams: visibleTeams.map((team) => toTeam(db, team, user)),
+    teamMembers,
     events: visibleEvents,
     eventRsvps: db.eventRsvps
       .filter((rsvp) => visibleEventIds.has(rsvp.eventId))

@@ -87,6 +87,7 @@ type State = {
   clubs: Club[];
   clubMembers: Record<string, ClubMember[]>;
   teams: Team[];
+  teamMembers: Record<string, ClubMember[]>;
   events: ClubEvent[];
   eventRsvps: EventRsvp[];
   announcements: Announcement[];
@@ -197,6 +198,7 @@ const emptyState: AppState = {
   clubs: [],
   clubMembers: {},
   teams: [],
+  teamMembers: {},
   events: [],
   eventRsvps: [],
   announcements: [],
@@ -300,6 +302,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clubs: state.clubs,
       clubMembers: state.clubMembers,
       teams: state.teams,
+      teamMembers: state.teamMembers,
       events: state.events,
       eventRsvps: state.eventRsvps,
       announcements: state.announcements,

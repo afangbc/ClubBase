@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Eye, Globe, Lock, Plus, Search, Trash2 } from "lucide-react";
+import { Eye, Globe, Lock, Plus, Search, Trash2, Trophy, Users } from "lucide-react";
 import { useState } from "react";
 import { ClubForm } from "@/components/ClubForm";
 import { SmoothCollapse } from "@/components/SmoothCollapse";
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/admin/clubs")({
 });
 
 function AdminClubs() {
-  const { clubs, sponsors, createClub } = useSession();
+  const { clubs, teams, sponsors, createClub } = useSession();
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
   const rooms = campusRooms(clubs);
@@ -97,6 +97,41 @@ function AdminClubs() {
         {results.length === 0 && (
           <p className="card-surface p-6 text-center text-sm text-muted-foreground">
             No clubs match that search.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-10 flex items-center gap-2">
+        <Trophy className="size-5 text-primary" />
+        <h2 className="text-2xl">Campus teams</h2>
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        {teams.map((team) => (
+          <article key={team.id} className="card-surface flex items-center gap-4 p-4">
+            <div className="grid size-11 shrink-0 place-items-center rounded-lg bg-primary/10">
+              <Trophy className="size-5 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-xl">{team.name}</h3>
+              <p className="text-xs text-muted-foreground">
+                {team.sport} · {team.sponsorName}
+              </p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                <Users className="size-3.5" /> {team.members} players
+              </p>
+            </div>
+            <Link
+              to="/teams/$teamId"
+              params={{ teamId: team.id }}
+              className="flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            >
+              <Eye className="size-4" /> View
+            </Link>
+          </article>
+        ))}
+        {teams.length === 0 && (
+          <p className="card-surface p-6 text-center text-sm text-muted-foreground md:col-span-2">
+            No teams have been created yet.
           </p>
         )}
       </div>

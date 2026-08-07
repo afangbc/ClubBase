@@ -37,6 +37,7 @@ import { Route as ManageEventsRouteImport } from './routes/manage.events'
 import { Route as ManageRequestsRouteImport } from './routes/manage.requests'
 import { Route as ManageTeamsRouteImport } from './routes/manage.teams'
 import { Route as ManageTutorialsRouteImport } from './routes/manage.tutorials'
+import { Route as TeamsTeamIdRouteImport } from './routes/teams_.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -178,6 +179,11 @@ const ManageTutorialsRoute = ManageTutorialsRouteImport.update({
   path: '/tutorials',
   getParentRoute: () => ManageRoute,
 } as any)
+const TeamsTeamIdRoute = TeamsTeamIdRouteImport.update({
+  id: '/teams_/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/teams/$teamId': typeof TeamsTeamIdRoute
   '/admin/': typeof AdminIndexRoute
   '/manage/': typeof ManageIndexRoute
 }
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/teams/$teamId': typeof TeamsTeamIdRoute
   '/admin': typeof AdminIndexRoute
   '/manage': typeof ManageIndexRoute
 }
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/teams_/$teamId': typeof TeamsTeamIdRoute
   '/admin/': typeof AdminIndexRoute
   '/manage/': typeof ManageIndexRoute
 }
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/teams/$teamId'
     | '/admin/'
     | '/manage/'
   fileRoutesByTo: FileRoutesByTo
@@ -325,6 +335,7 @@ export interface FileRouteTypes {
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/teams/$teamId'
     | '/admin'
     | '/manage'
   id:
@@ -355,6 +366,7 @@ export interface FileRouteTypes {
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/teams_/$teamId'
     | '/admin/'
     | '/manage/'
   fileRoutesById: FileRoutesById
@@ -375,6 +387,7 @@ export interface RootRouteChildren {
   TutorialsRoute: typeof TutorialsRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   ClubsClubIdRoute: typeof ClubsClubIdRoute
+  TeamsTeamIdRoute: typeof TeamsTeamIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -575,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageTutorialsRouteImport
       parentRoute: typeof ManageRoute
     }
+    '/teams_/$teamId': {
+      id: '/teams_/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof TeamsTeamIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -637,6 +657,7 @@ const rootRouteChildren: RootRouteChildren = {
   TutorialsRoute: TutorialsRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   ClubsClubIdRoute: ClubsClubIdRoute,
+  TeamsTeamIdRoute: TeamsTeamIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

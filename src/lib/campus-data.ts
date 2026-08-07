@@ -175,6 +175,7 @@ export type Team = {
   sport: string;
   sponsorId: string;
   sponsorName: string;
+  sponsorEmail: string;
   members: number;
   /** Only admins and the team's sponsor receive this value. */
   code?: string;
