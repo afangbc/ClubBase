@@ -57,21 +57,27 @@ function Index() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [minimumOpeningTime, setMinimumOpeningTime] = useState(true);
 
   const destination = homeFor(session);
   const leavingIndex =
     !!session && (!session.emailVerified || joined || !!session.owner || session.role === "admin");
 
   useEffect(() => {
+    const timer = window.setTimeout(() => setMinimumOpeningTime(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     // An unconfirmed address goes to the code screen before anything else.
     // Admins and owners never enter a campus code, so they skip step 2 entirely.
-    if (ready && leavingIndex) navigate({ to: destination, replace: true });
-  }, [ready, leavingIndex, destination, navigate]);
+    if (ready && leavingIndex && !minimumOpeningTime) navigate({ to: destination, replace: true });
+  }, [ready, leavingIndex, minimumOpeningTime, destination, navigate]);
 
   // Never paint an auth step until the server has confirmed the session. After
   // sign-in, keep the short redirect frame neutral instead of flashing the
   // campus-code form for accounts that already belong to a school.
-  if (!ready || leavingIndex) return <OpeningClubHub />;
+  if (!ready || leavingIndex || minimumOpeningTime) return <OpeningClubHub />;
 
   const step: 1 | 2 = session ? 2 : 1;
   const placeholder = role === "student" ? "student@school.edu" : "first.last@district.org";
