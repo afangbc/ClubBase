@@ -31,6 +31,45 @@ const LEGACY_REDIS_KEY =
 
 type RedisResponse = { result?: unknown; error?: string };
 
+const databaseCollections = [
+  "schools",
+  "users",
+  "clubs",
+  "memberships",
+  "teams",
+  "teamMemberships",
+  "events",
+  "announcements",
+  "tutorialSchedules",
+] as const;
+
+/** Prefer the database that contains the most real records during a rename migration. */
+function databaseSize(contents: string | null): number {
+  if (!contents) return -1;
+
+  try {
+    const database = JSON.parse(contents) as Record<string, unknown>;
+    return databaseCollections.reduce((total, collection) => {
+      const records = database[collection];
+      return total + (Array.isArray(records) ? records.length : 0);
+    }, 0);
+  } catch {
+    return -1;
+  }
+}
+
+function selectDatabase(current: string | null, legacy: string | null): string | null {
+  return databaseSize(legacy) > databaseSize(current) ? legacy : current;
+}
+
+function redisString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") {
+    throw new Error("[clubbase] Redis returned a non-string database value.");
+  }
+  return value;
+}
+
 /**
  * The same REST credentials arrive under different names depending on how the
  * database was provisioned — Upstash's own integration injects `UPSTASH_*`,
@@ -105,16 +144,18 @@ async function createRedisDriver(): Promise<StorageDriver | null> {
   return {
     kind: `Upstash Redis (${REDIS_KEY})`,
     async read() {
-      let result = await command(["GET", REDIS_KEY]);
-      if ((result === null || result === undefined) && LEGACY_REDIS_KEY !== REDIS_KEY) {
-        result = await command(["GET", LEGACY_REDIS_KEY]);
-        if (typeof result === "string") await command(["SET", REDIS_KEY, result]);
+      const current = redisString(await command(["GET", REDIS_KEY]));
+      const legacy =
+        LEGACY_REDIS_KEY === REDIS_KEY
+          ? null
+          : redisString(await command(["GET", LEGACY_REDIS_KEY]));
+      const selected = selectDatabase(current, legacy);
+
+      if (selected !== null && selected !== current) {
+        await command(["SET", REDIS_KEY, selected]);
       }
-      if (result === null || result === undefined) return null;
-      if (typeof result !== "string") {
-        throw new Error("[clubbase] Redis returned a non-string database value.");
-      }
-      return result;
+
+      return selected;
     },
     async write(contents: string) {
       await command(["SET", REDIS_KEY, contents]);
@@ -131,25 +172,28 @@ async function createFileDriver(): Promise<StorageDriver | null> {
     const legacyFile = path.resolve(process.cwd(), LEGACY_DATA_FILE);
     const dir = path.dirname(file);
 
+    const readIfPresent = async (target: string): Promise<string | null> => {
+      try {
+        return await fs.readFile(target, "utf8");
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+        throw error;
+      }
+    };
+
     return {
       kind: `file (${DATA_FILE})`,
       async read() {
-        try {
-          return await fs.readFile(file, "utf8");
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code === "ENOENT" && legacyFile !== file) {
-            try {
-              const contents = await fs.readFile(legacyFile, "utf8");
-              await fs.mkdir(dir, { recursive: true });
-              await fs.writeFile(file, contents, "utf8");
-              return contents;
-            } catch (legacyError) {
-              if ((legacyError as NodeJS.ErrnoException).code === "ENOENT") return null;
-              throw legacyError;
-            }
-          }
-          throw error;
+        const current = await readIfPresent(file);
+        const legacy = legacyFile === file ? null : await readIfPresent(legacyFile);
+        const selected = selectDatabase(current, legacy);
+
+        if (selected !== null && selected !== current) {
+          await fs.mkdir(dir, { recursive: true });
+          await fs.writeFile(file, selected, "utf8");
         }
+
+        return selected;
       },
       async write(contents: string) {
         await fs.mkdir(dir, { recursive: true });
