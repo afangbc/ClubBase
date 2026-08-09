@@ -128,9 +128,22 @@ export function getStorageDriver(): Promise<StorageDriver> {
     driverPromise = createRedisDriver().then(async (redis) => {
       if (redis) return redis;
 
-      if (typeof process !== "undefined" && process.env["VERCEL"]) {
+      // Serverless hosts — Vercel, Netlify, Cloudflare — hand each request a
+      // throwaway container with a read-only disk, so the drivers below would
+      // lose every account the moment it was created. Refuse to serve instead:
+      // a deployment that says "connect Redis" beats one that quietly forgets
+      // its users. Setting CLUBHUB_DATA_FILE opts a real server with a real
+      // disk back into file storage.
+      const requiresDurableStorage =
+        typeof process !== "undefined" &&
+        process.env["NODE_ENV"] === "production" &&
+        !process.env["CLUBHUB_DATA_FILE"];
+
+      if (requiresDurableStorage) {
         throw new Error(
-          "[clubhub] Vercel requires persistent storage. Connect Upstash Redis and redeploy.",
+          "[clubhub] Production requires persistent storage. Set UPSTASH_REDIS_REST_URL and " +
+            "UPSTASH_REDIS_REST_TOKEN, then redeploy. On a server with a writable disk, set " +
+            "CLUBHUB_DATA_FILE instead to keep using file storage.",
         );
       }
 

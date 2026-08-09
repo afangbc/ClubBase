@@ -28,6 +28,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Host build output (netlify.toml and vercel config are committed; these aren't)
+.netlify/
+.vercel/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

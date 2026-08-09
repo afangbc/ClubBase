@@ -1,0 +1,19 @@
+# Netlify deployment.
+#
+# `NETLIFY` is set during the build, which switches vite.config.ts to Nitro's
+# netlify preset. That preset writes the static site to dist/ and the SSR
+# handler to .netlify/functions-internal/server/, which Netlify picks up
+# automatically — every route except the static assets is served by it.
+#
+# ClubHub also needs the environment variables listed in .env.example set in
+# Site configuration → Environment variables. Upstash Redis is required:
+# function instances have no writable disk and are recycled constantly, so
+# without it there is nowhere to keep accounts, clubs, or sessions.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 8 and Nitro 3 both require a current Node.
+  NODE_VERSION = "22"

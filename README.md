@@ -383,9 +383,12 @@ CLUBHUB_OWNER_EMAILS=owner1@district.org,owner2@district.org
 
 # Deployment
 
-ClubHub is designed for deployment on **Vercel**.
+ClubHub runs on **Vercel** or **Netlify**. `vite.config.ts` picks the matching
+Nitro preset from the variable the host sets during its build, so no manual
+switch is needed — but a build made for the wrong host deploys as static files
+with no server behind it, and every route 404s.
 
-Required environment variables:
+Required environment variables on either host:
 
 ```
 UPSTASH_REDIS_REST_URL
@@ -404,6 +407,23 @@ Optional:
 ```
 CLUBHUB_REDIS_KEY
 ```
+
+Upstash Redis is not optional in production. Serverless functions get a
+read-only disk and are recycled between requests, so the local file driver has
+nowhere to write; the server refuses to start without Redis rather than lose
+accounts silently. Set `CLUBHUB_DATA_FILE` to opt back into file storage only
+when deploying to a real server with a persistent disk.
+
+## Netlify
+
+`netlify.toml` is committed with the build command and publish directory, so
+connecting the repository is enough. The build writes the static site to
+`dist/` and the SSR handler to `.netlify/functions-internal/server/`, which
+Netlify picks up automatically.
+
+Add the environment variables above under **Site configuration → Environment
+variables** before the first deploy — a deployment missing them builds fine and
+then fails at request time.
 
 ---
 

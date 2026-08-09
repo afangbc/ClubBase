@@ -2,7 +2,6 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
-const output = join(root, ".output");
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
@@ -16,9 +15,29 @@ const filesUnder = (directory) =>
       })
     : [];
 
-const robots = read(join(output, "public", "robots.txt"));
-const sitemap = read(join(output, "public", "sitemap.xml"));
-const serverBundle = filesUnder(join(output, "server"))
+// Every Nitro preset writes its build somewhere different. Pick the layout from
+// the same host variables vite.config.ts uses to pick the preset — checking
+// which directory exists would happily grade a stale build from another target.
+const layouts = {
+  netlify: { staticDir: "dist", serverDir: ".netlify/functions-internal" },
+  vercel: { staticDir: ".vercel/output/static", serverDir: ".vercel/output/functions" },
+  cloudflare: { staticDir: ".output/public", serverDir: ".output/server" },
+};
+
+const preset = process.env["NETLIFY"] ? "netlify" : process.env["VERCEL"] ? "vercel" : "cloudflare";
+const staticDir = join(root, layouts[preset].staticDir);
+const serverDir = join(root, layouts[preset].serverDir);
+
+if (!existsSync(serverDir)) {
+  console.error(
+    `SEO regression check failed: the ${preset} build produced no server output at ${layouts[preset].serverDir}.`,
+  );
+  process.exit(1);
+}
+
+const robots = read(join(staticDir, "robots.txt"));
+const sitemap = read(join(staticDir, "sitemap.xml"));
+const serverBundle = filesUnder(serverDir)
   .filter((path) => path.endsWith(".mjs"))
   .map(read)
   .join("\n");
