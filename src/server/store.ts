@@ -39,6 +39,12 @@ async function migrate(parsed: LegacyDatabase): Promise<Database> {
     user.emailVerified === undefined ? { ...user, emailVerified: true } : user,
   );
   next.emailVerifications = next.emailVerifications ?? [];
+  next.eventRsvps = next.eventRsvps ?? [];
+  next.tutorialSchedules = next.tutorialSchedules ?? [];
+  next.tutorialCancellations = next.tutorialCancellations ?? [];
+  next.tutorialTeachers = next.tutorialTeachers ?? [];
+  next.tutorialSignups = next.tutorialSignups ?? [];
+  next.schoolDepartures = next.schoolDepartures ?? [];
 
   const neutralDemoEmails: Record<string, { from: string; to: string }> = {
     "u-rivera": { from: "jordan.rivera.123@k12.friscoisd.org", to: "student@demo.clubhub.app" },

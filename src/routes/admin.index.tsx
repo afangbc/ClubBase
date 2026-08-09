@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Building2, CalendarDays, Copy, RefreshCw, UserCog, Users } from "lucide-react";
+import { Building2, CalendarDays, Copy, Palette, RefreshCw, UserCog, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TextField } from "@/components/form-fields";
+import { CLUBHUB_COLORS } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/admin/")({
@@ -210,6 +211,9 @@ function SchoolBranding() {
   const [secondaryColor, setSecondaryColor] = useState(school?.secondaryColor ?? "#facc15");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const usingClubHubColors =
+    primaryColor.toLowerCase() === CLUBHUB_COLORS.primaryColor &&
+    secondaryColor.toLowerCase() === CLUBHUB_COLORS.secondaryColor;
 
   useEffect(() => {
     if (!school) return;
@@ -218,6 +222,20 @@ function SchoolBranding() {
   }, [school]);
 
   if (!school) return null;
+
+  const saveColors = async (colors = { primaryColor, secondaryColor }, preset = false) => {
+    if (busy) return;
+    setBusy(true);
+    setPrimaryColor(colors.primaryColor);
+    setSecondaryColor(colors.secondaryColor);
+    const error = await updateSchoolColors(colors);
+    setBusy(false);
+    setMessage(
+      error
+        ? { ok: false, text: error }
+        : { ok: true, text: preset ? "ClubHub colors applied." : "School colors saved." },
+    );
+  };
 
   return (
     <section className="card-surface mt-6 p-5">
@@ -229,13 +247,7 @@ function SchoolBranding() {
         className="mt-4 flex flex-wrap items-end gap-4"
         onSubmit={async (event) => {
           event.preventDefault();
-          if (busy) return;
-          setBusy(true);
-          const error = await updateSchoolColors({ primaryColor, secondaryColor });
-          setBusy(false);
-          setMessage(
-            error ? { ok: false, text: error } : { ok: true, text: "School colors saved." },
-          );
+          await saveColors();
         }}
       >
         <ColorPicker label="Primary color" value={primaryColor} onChange={setPrimaryColor} />
@@ -253,6 +265,15 @@ function SchoolBranding() {
           className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
         >
           {busy ? "Saving…" : "Save colors"}
+        </button>
+        <button
+          type="button"
+          disabled={busy || usingClubHubColors}
+          onClick={() => void saveColors({ ...CLUBHUB_COLORS }, true)}
+          className="flex items-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent disabled:cursor-default disabled:opacity-60"
+        >
+          <Palette className="size-4 text-brand" />
+          {usingClubHubColors ? "Using ClubHub colors" : "Use ClubHub colors"}
         </button>
       </form>
       {message && (

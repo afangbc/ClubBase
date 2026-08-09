@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Globe, Lock, Plus, Search, Trash2 } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Eye, Globe, Lock, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ClubForm } from "@/components/ClubForm";
 import { SmoothCollapse } from "@/components/SmoothCollapse";
@@ -80,7 +80,7 @@ function AdminClubs() {
         </section>
       </SmoothCollapse>
 
-      <div className="relative mt-6 max-w-md">
+      <div className="control-flow-in relative mt-6 max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <input
           value={q}
@@ -135,11 +135,20 @@ function ClubRow({
   return (
     <article className="card-surface p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-52 flex-1">
-          <h2 className="text-2xl leading-tight">{club.name}</h2>
-          <p className="text-xs text-muted-foreground">
-            {club.sponsorName} · {club.meets} · {club.room} · {club.members} members
-          </p>
+        <div className="flex min-w-52 flex-1 items-center gap-3">
+          {club.logo && (
+            <img
+              src={club.logo}
+              alt=""
+              className="size-11 rounded-lg bg-card object-contain p-1 shadow-sm"
+            />
+          )}
+          <div>
+            <h2 className="text-2xl leading-tight">{club.name}</h2>
+            <p className="text-xs text-muted-foreground">
+              {club.sponsorName} · {club.meets} · {club.room} · {club.members} members
+            </p>
+          </div>
         </div>
         <span
           className={`flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
@@ -155,6 +164,13 @@ function ClubRow({
           )}
           {club.visibility}
         </span>
+        <Link
+          to="/clubs/$clubId"
+          params={{ clubId: club.id }}
+          className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+        >
+          <Eye className="size-4" /> View page
+        </Link>
         <button
           onClick={() => setOpen((o) => !o)}
           className="rounded-md border border-input px-3 py-2 text-sm font-semibold hover:bg-secondary"
@@ -178,6 +194,7 @@ function ClubRow({
               schedule: club.schedule,
               room: club.room,
               blurb: club.blurb,
+              logo: club.logo ?? "",
               joinInstructions: club.joinInstructions ?? "",
             }}
             onSubmit={(input) => updateClub(club.id, input)}

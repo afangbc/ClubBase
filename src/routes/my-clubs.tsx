@@ -60,7 +60,7 @@ function MyClubs() {
       ) : (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {mine.map((c) => (
-            <ClubCard key={c.id} club={c} />
+            <ClubCard key={c.id} club={c} details />
           ))}
         </div>
       )}
@@ -120,7 +120,10 @@ function MyClubs() {
         <section className="mt-10">
           <div className="flex items-end justify-between gap-4">
             <h2 className="text-2xl">From your sponsors</h2>
-            <Link to="/announcements" className="text-xs font-semibold underline underline-offset-2">
+            <Link
+              to="/announcements"
+              className="text-xs font-semibold underline underline-offset-2"
+            >
               See all announcements
             </Link>
           </div>

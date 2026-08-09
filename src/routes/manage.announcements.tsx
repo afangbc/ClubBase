@@ -21,12 +21,13 @@ export const Route = createFileRoute("/manage/announcements")({
   component: Announcements,
 });
 
-function Announcements() {
+export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: boolean }) {
   const { session, clubs, teams, announcements, addAnnouncement, removeAnnouncement } = useSession();
   const mine = session ? staffClubs(clubs, session) : [];
   const ids = mine.map((c) => c.id);
   const teamIds = teams.map((team) => team.id);
   const targets = [
+    ...(allowSchoolWide ? [{ value: "school:all", label: "Entire school" }] : []),
     ...mine.map((club) => ({ value: `club:${club.id}`, label: `Club · ${club.name}` })),
     ...teams.map((team) => ({ value: `team:${team.id}`, label: `Team · ${team.name}` })),
   ];
@@ -40,7 +41,9 @@ function Announcements() {
   if (!session) return null;
   const target = targets.some((item) => item.value === picked) ? picked : (targets[0]?.value ?? "");
   const [kind, targetId] = target.split(":");
-  const posted = announcements.filter((post) => post.clubId ? ids.includes(post.clubId) : !!post.teamId && teamIds.includes(post.teamId));
+  const posted = announcements.filter((post) =>
+    post.schoolWide ? allowSchoolWide : post.clubId ? ids.includes(post.clubId) : !!post.teamId && teamIds.includes(post.teamId),
+  );
 
   if (targets.length === 0) return <NoClubs />;
 
@@ -58,14 +61,22 @@ function Announcements() {
             if (busy) return;
             if (!targetId || !title.trim() || !body.trim()) {
               setOk("");
-              setError("Pick a club or team, then add a headline and a message.");
+              setError("Pick an audience, then add a headline and a message.");
               return;
             }
             setBusy(true);
-            const problem = await addAnnouncement({ ...(kind === "club" ? { clubId: targetId } : { teamId: targetId }), title, body });
+            const problem = await addAnnouncement({
+              ...(kind === "school"
+                ? { schoolWide: true }
+                : kind === "club"
+                  ? { clubId: targetId }
+                  : { teamId: targetId }),
+              title,
+              body,
+            });
             setBusy(false);
             setError(problem ?? "");
-            const targetName = kind === "club" ? clubs.find((club) => club.id === targetId)?.name : teams.find((team) => team.id === targetId)?.name;
+            const targetName = kind === "school" ? "the entire school" : kind === "club" ? clubs.find((club) => club.id === targetId)?.name : teams.find((team) => team.id === targetId)?.name;
             setOk(problem ? "" : `Sent to ${targetName}.`);
             if (!problem) {
               setTitle("");
@@ -74,7 +85,7 @@ function Announcements() {
           }}
         >
           <SelectField
-            label="Club or team"
+            label="Audience"
             value={target}
             onChange={setPicked}
             options={targets}
@@ -112,7 +123,7 @@ function Announcements() {
               <div className="flex-1">
                 <p className="text-sm font-semibold">{a.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name)} ·{" "}
+                  {a.schoolWide ? "Entire school" : a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name} ·{" "}
                   {new Date(`${a.postedAt}T12:00:00`).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CalendarDays, Globe, Lock, Megaphone, Plus, Trash2, Users } from "lucide-react";
+import { CalendarDays, Eye, Globe, Lock, Megaphone, Plus, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import { ClubForm } from "@/components/ClubForm";
 import { SmoothCollapse } from "@/components/SmoothCollapse";
@@ -32,8 +32,12 @@ function Dashboard() {
   const ids = mine.map((c) => c.id);
   const myRequests = requests.filter((r) => ids.includes(r.clubId));
   const teamIds = teams.map((team) => team.id);
-  const myEvents = events.filter((event) => event.clubId ? ids.includes(event.clubId) : !!event.teamId && teamIds.includes(event.teamId));
-  const myPosts = announcements.filter((post) => post.clubId ? ids.includes(post.clubId) : !!post.teamId && teamIds.includes(post.teamId));
+  const myEvents = events.filter((event) =>
+    event.clubId ? ids.includes(event.clubId) : !!event.teamId && teamIds.includes(event.teamId),
+  );
+  const myPosts = announcements.filter((post) =>
+    post.clubId ? ids.includes(post.clubId) : !!post.teamId && teamIds.includes(post.teamId),
+  );
 
   return (
     <div>
@@ -78,7 +82,7 @@ function Dashboard() {
         <Stat icon={Megaphone} label="Announcements posted" value={myPosts.length} />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="flow-up-in mt-4 flex flex-wrap gap-2">
         <Link
           to="/manage/events"
           className="rounded-md border border-input bg-card px-4 py-2 text-sm font-semibold hover:bg-accent"
@@ -152,11 +156,20 @@ function ClubEditor({ club, rooms, pending }: { club: Club; rooms: string[]; pen
   return (
     <article className="card-surface p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-2xl leading-tight">{club.name}</h3>
-          <p className="text-xs text-muted-foreground">
-            {club.members} members · {pending} pending · {club.meets}
-          </p>
+        <div className="flex min-w-0 items-center gap-3">
+          {club.logo && (
+            <img
+              src={club.logo}
+              alt=""
+              className="size-11 rounded-lg bg-card object-contain p-1 shadow-sm"
+            />
+          )}
+          <div>
+            <h3 className="text-2xl leading-tight">{club.name}</h3>
+            <p className="text-xs text-muted-foreground">
+              {club.members} members · {pending} pending · {club.meets}
+            </p>
+          </div>
         </div>
         <button
           onClick={async () =>
@@ -182,12 +195,21 @@ function ClubEditor({ club, rooms, pending }: { club: Club; rooms: string[]; pen
         </button>
       </div>
 
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="mt-3 w-full rounded-md border border-input py-2 text-sm font-semibold hover:bg-secondary"
-      >
-        {open ? "Close settings" : "Edit club settings"}
-      </button>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <Link
+          to="/clubs/$clubId"
+          params={{ clubId: club.id }}
+          className="flex items-center justify-center gap-2 rounded-md bg-primary py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+        >
+          <Eye className="size-4" /> View club page
+        </Link>
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="rounded-md border border-input py-2 text-sm font-semibold hover:bg-secondary"
+        >
+          {open ? "Close settings" : "Edit club settings"}
+        </button>
+      </div>
 
       <SmoothCollapse open={open}>
         <div>
@@ -202,6 +224,7 @@ function ClubEditor({ club, rooms, pending }: { club: Club; rooms: string[]; pen
               schedule: club.schedule,
               room: club.room,
               blurb: club.blurb,
+              logo: club.logo ?? "",
               joinInstructions: club.joinInstructions ?? "",
             }}
             onSubmit={async (input) => {

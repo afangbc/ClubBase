@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { ClockField, SelectField, TextField } from "@/components/form-fields";
+import { ClockField, SelectField, TextArea, TextField } from "@/components/form-fields";
 import { formatTime } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 import { campusRooms, staffClubs } from "@/lib/staff";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/manage/events")({
   component: Meetings,
 });
 
-function Meetings() {
+export function Meetings() {
   const { session, clubs, teams, events, addEvent, removeEvent } = useSession();
   const mine = session ? staffClubs(clubs, session) : [];
   const ids = mine.map((c) => c.id);
@@ -40,6 +40,7 @@ function Meetings() {
   const [start, setStart] = useState("16:00");
   const [end, setEnd] = useState("17:00");
   const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
   const [busy, setBusy] = useState(false);
@@ -79,6 +80,7 @@ function Meetings() {
               start,
               end,
               location: location.trim(),
+              description: description.trim(),
             });
             setBusy(false);
             setError(problem ?? "");
@@ -86,6 +88,7 @@ function Meetings() {
             if (!problem) {
               setTitle("");
               setLocation("");
+              setDescription("");
             }
           }}
         >
@@ -115,6 +118,12 @@ function Meetings() {
               clubs,
               events.map((e) => e.location),
             )}
+          />
+          <TextArea
+            label="Description (optional)"
+            value={description}
+            onChange={setDescription}
+            placeholder="Add anything students should know about this meeting or event."
           />
           {error && <p className="text-sm text-destructive">{error}</p>}
           {ok && <p className="text-sm text-success">{ok}</p>}

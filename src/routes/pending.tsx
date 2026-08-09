@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Clock, RefreshCw, ShieldX } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { homeFor, roleLabel } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
@@ -20,8 +20,12 @@ export const Route = createFileRoute("/pending")({
 });
 
 function Pending() {
-  const { session, school, ready, signOut, refresh } = useSession();
+  const { session, school, ready, signOut, refresh, joinSchool } = useSession();
   const navigate = useNavigate();
+  const [changingSchool, setChangingSchool] = useState(false);
+  const [schoolCode, setSchoolCode] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const waiting = session
     ? session.emailVerified && session.role !== "student" && session.status !== "active"
     : false;
@@ -34,6 +38,7 @@ function Pending() {
 
   if (!ready || !session || !waiting) return null;
   const denied = session.status === "denied";
+  const canChangeSchool = denied && session.role === "teacher";
 
   return (
     <div className="grid min-h-screen place-items-center bg-secondary px-6">
@@ -46,13 +51,13 @@ function Pending() {
           {denied ? <ShieldX className="size-7" /> : <Clock className="size-7" />}
         </span>
         <h1 className="mt-4 text-3xl">
-          {denied ? "This account was declined" : "Waiting on a school admin"}
+          {denied ? "Staff access unavailable" : "Waiting on a school admin"}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {denied ? (
             <>
-              A {school?.name ?? "school"} admin declined this staff account. Stop by the front
-              office if you think that's a mistake — an admin can reinstate you in ClubHub.
+              A {school?.name ?? "school"} admin revoked or declined this staff account. They can
+              reinstate you, or you can request access at a different school below.
             </>
           ) : (
             <>
@@ -74,11 +79,19 @@ function Pending() {
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Status</dt>
             <dd className={`font-semibold ${denied ? "text-destructive" : ""}`}>
-              {denied ? "Declined" : "Pending review"}
+              {denied ? "Revoked / declined" : "Pending review"}
             </dd>
           </div>
         </dl>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
+          {canChangeSchool && !changingSchool && (
+            <button
+              onClick={() => setChangingSchool(true)}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              Enter a different school code
+            </button>
+          )}
           {!denied && (
             <button
               onClick={() => void refresh()}
@@ -97,6 +110,56 @@ function Pending() {
             Sign out
           </button>
         </div>
+        {canChangeSchool && changingSchool && (
+          <form
+            className="mt-5 border-t border-border pt-5 text-left"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              if (busy) return;
+              setBusy(true);
+              const message = await joinSchool(schoolCode);
+              setError(message ?? "");
+              setBusy(false);
+              if (!message) await refresh();
+            }}
+          >
+            <label className="block">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                New school access code
+              </span>
+              <input
+                value={schoolCode}
+                onChange={(event) => setSchoolCode(event.target.value.toUpperCase())}
+                placeholder="ABCD-1234"
+                autoFocus
+                className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/25"
+              />
+            </label>
+            <p className="mt-2 text-xs text-muted-foreground">
+              This moves your account to that school's approval queue. Their admin must approve you
+              before you can use staff tools.
+            </p>
+            {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setChangingSchool(false);
+                  setError("");
+                }}
+                className="rounded-md border border-input px-4 py-2 text-sm font-semibold hover:bg-secondary"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={busy || !schoolCode.trim()}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {busy ? "Submitting…" : "Request new school"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

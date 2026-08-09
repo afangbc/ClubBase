@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { SelectField } from "@/components/form-fields";
 import { GRADES, roleLabel, type Prefs } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
@@ -48,6 +49,8 @@ const prefRows: { key: keyof Prefs; label: string; hint: string }[] = [
   },
 ];
 
+const gradeOptions = GRADES.map((grade) => ({ value: grade, label: grade }));
+
 function AccountPage() {
   const {
     session,
@@ -57,6 +60,7 @@ function AccountPage() {
     changePassword,
     signOut,
     deleteAccount,
+    leaveSchool,
     myClubs,
     schoolCode,
     school,
@@ -72,6 +76,10 @@ function AccountPage() {
   const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const [leaveError, setLeaveError] = useState("");
+  const [leaving, setLeaving] = useState(false);
+  const [leavePassword, setLeavePassword] = useState("");
 
   if (!session) return null;
 
@@ -94,22 +102,7 @@ function AccountPage() {
           <Field label="Full name" value={name} onChange={setName} />
           <Field label="School email" value={email} onChange={setEmail} type="email" />
           {session.role === "student" && (
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Grade
-              </span>
-              <select
-                value={grade}
-                onChange={(event) => setGrade(event.target.value)}
-                className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/25"
-              >
-                {GRADES.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SelectField label="Grade" value={grade} onChange={setGrade} options={gradeOptions} />
           )}
           <div className="grid gap-1">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -190,7 +183,10 @@ function AccountPage() {
         </dl>
       </Section>
 
-      <Section title="Danger zone" desc="Sign out or delete your account for good.">
+      <Section
+        title="Danger zone"
+        desc="Leave your school, sign out, or permanently delete your account."
+      >
         <div className="flex flex-wrap gap-2">
           <button
             onClick={async () => {
@@ -201,6 +197,18 @@ function AccountPage() {
           >
             Sign out
           </button>
+          {session.role !== "admin" && !confirmLeave && (
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmDelete(false);
+                setConfirmLeave(true);
+              }}
+              className="rounded-md border border-destructive px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10"
+            >
+              Leave school
+            </button>
+          )}
           {confirmDelete ? (
             <>
               <button
@@ -226,13 +234,70 @@ function AccountPage() {
             </>
           ) : (
             <button
-              onClick={() => setConfirmDelete(true)}
+              onClick={() => {
+                setConfirmLeave(false);
+                setConfirmDelete(true);
+              }}
               className="rounded-md border border-destructive px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/10"
             >
               Delete account
             </button>
           )}
         </div>
+        {session.role !== "admin" && confirmLeave && (
+          <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-4">
+            <p className="text-sm font-semibold">Warning: leave {school?.name ?? "this school"}?</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              This resets your club and team memberships, pending requests, RSVPs, and tutorial
+              data. Sponsored clubs and teams will return to the campus admin. Your account will not
+              be deleted. Your old school data is recoverable for 14 days, then it is deleted
+              forever. Joining another school confirms the transfer early and permanently deletes
+              the recovery copy. Staff must be approved again by the new school's admin.
+            </p>
+            <div className="mt-4 max-w-sm">
+              <Field
+                label="Enter your current password to continue"
+                value={leavePassword}
+                onChange={setLeavePassword}
+                type="password"
+                placeholder="Current password"
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={leaving}
+                onClick={async () => {
+                  setLeaving(true);
+                  setLeaveError("");
+                  const err = await leaveSchool(leavePassword);
+                  if (err) {
+                    setLeaveError(err);
+                    setLeaving(false);
+                    return;
+                  }
+                  navigate({ to: "/", replace: true });
+                }}
+                className="rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground hover:bg-destructive/90 disabled:opacity-60"
+              >
+                {leaving ? "Leaving..." : "Yes, leave and reset my school data"}
+              </button>
+              <button
+                type="button"
+                disabled={leaving}
+                onClick={() => {
+                  setConfirmLeave(false);
+                  setLeaveError("");
+                  setLeavePassword("");
+                }}
+                className="rounded-md px-4 py-2 text-sm font-semibold hover:bg-secondary disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        {leaveError && <p className="mt-3 text-sm text-destructive">{leaveError}</p>}
         {deleteError && <p className="mt-3 text-sm text-destructive">{deleteError}</p>}
       </Section>
     </div>

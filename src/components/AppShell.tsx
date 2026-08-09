@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   CalendarDays,
+  CalendarCheck,
   Compass,
   LogOut,
   Settings,
@@ -10,7 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { homeFor, roleLabel } from "@/lib/campus-data";
+import { homeFor, roleLabel, schoolInitials } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 const nav = [
@@ -18,6 +19,7 @@ const nav = [
   { to: "/my-clubs", label: "My Clubs", icon: Users },
   { to: "/teams", label: "Join Team", icon: Trophy },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/tutorials", label: "Tutorials", icon: CalendarCheck },
   { to: "/announcements", label: "Announcements", icon: Bell },
 ] as const;
 
@@ -39,12 +41,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   if (!ready || !session || !session.emailVerified || !joined || locked) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-secondary">
       <header className="sticky top-0 z-30 border-b border-border bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <Link to="/clubs" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-md bg-brand font-display text-lg text-brand-foreground">
-              F
+            <span className="grid size-8 place-items-center rounded-md bg-brand text-center font-display text-xl leading-none text-brand-foreground">
+              {schoolInitials(school?.name)}
             </span>
             <span className="font-display text-2xl leading-none">ClubHub</span>
           </Link>

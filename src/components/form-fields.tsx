@@ -83,11 +83,11 @@ export function ClockField({
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
-      <div className="mt-1 flex items-center gap-1">
+      <div className="mt-1 grid min-w-0 grid-cols-[3rem_minmax(0,1fr)_minmax(0,1fr)] gap-1">
         <input
           type="number"
           min={1}
@@ -95,13 +95,13 @@ export function ClockField({
           aria-label={`${label} hour`}
           value={twelve}
           onChange={(e) => emit(Number(e.target.value), safeMinute, meridiem)}
-          className={`${control} mt-0 w-12 shrink-0 px-1 text-center`}
+          className="min-w-0 rounded-md border border-input bg-card px-1 py-2 text-center text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/25"
         />
         <select
           aria-label={`${label} minute`}
           value={safeMinute}
           onChange={(e) => emit(twelve, Number(e.target.value), meridiem)}
-          className={`${control} mt-0 min-w-0 flex-1 px-1`}
+          className="min-w-0 rounded-md border border-input bg-card px-1 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/25"
         >
           {minuteOptions.map((m) => (
             <option key={m} value={m}>
@@ -113,7 +113,7 @@ export function ClockField({
           aria-label={`${label} AM or PM`}
           value={meridiem}
           onChange={(e) => emit(twelve, safeMinute, e.target.value as "AM" | "PM")}
-          className={`${control} mt-0 min-w-0 flex-1 px-1`}
+          className="min-w-0 rounded-md border border-input bg-card px-1 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/25"
         >
           <option value="AM">AM</option>
           <option value="PM">PM</option>

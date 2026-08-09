@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, RotateCcw, Trophy, Users, X } from "lucide-react";
+import { AlertTriangle, Check, RotateCcw, ShieldOff, Trophy, Users, X } from "lucide-react";
 import { useState } from "react";
 import { roleLabel, type StaffAccount } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
@@ -23,6 +23,8 @@ export const Route = createFileRoute("/admin/teachers")({
 function AdminStaff() {
   const { session, staff, clubs, teams, reviewStaff } = useSession();
   const [error, setError] = useState("");
+  const [revokeTarget, setRevokeTarget] = useState<StaffAccount | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   const waiting = staff.filter((s) => s.status === "pending");
   const active = staff.filter((s) => s.status === "active");
@@ -32,8 +34,17 @@ function AdminStaff() {
     setError((await reviewStaff(userId, approve)) ?? "");
   };
 
+  const confirmRevoke = async () => {
+    if (!revokeTarget || revoking) return;
+    setRevoking(true);
+    const message = (await reviewStaff(revokeTarget.id, false)) ?? "";
+    setError(message);
+    setRevoking(false);
+    if (!message) setRevokeTarget(null);
+  };
+
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
       <h1 className="text-4xl">Staff accounts</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Teachers who join with your campus code stay locked out of the sponsor console until you
@@ -91,10 +102,10 @@ function AdminStaff() {
             action={
               s.id === session?.id ? null : (
                 <button
-                  onClick={() => void review(s.id, false)}
-                  className="rounded-md border border-input px-3 py-1.5 text-xs font-semibold hover:bg-secondary"
+                  onClick={() => setRevokeTarget(s)}
+                  className="flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-2 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
                 >
-                  Revoke
+                  <ShieldOff className="size-3.5" /> Revoke access
                 </button>
               )
             }
@@ -104,7 +115,7 @@ function AdminStaff() {
 
       {declined.length > 0 && (
         <>
-          <h2 className="mt-10 text-2xl">Declined</h2>
+          <h2 className="mt-10 text-2xl">Revoked or declined</h2>
           <ul className="mt-3 space-y-2">
             {declined.map((s) => (
               <Row
@@ -125,6 +136,61 @@ function AdminStaff() {
           </ul>
         </>
       )}
+
+      {revokeTarget && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/65 p-4 backdrop-blur-sm"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target && !revoking) setRevokeTarget(null);
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="revoke-title"
+            aria-describedby="revoke-description"
+            className="card-surface w-full max-w-md p-6 shadow-2xl"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <AlertTriangle className="size-5" />
+              </div>
+              <div>
+                <h2 id="revoke-title" className="text-2xl">
+                  Revoke staff access?
+                </h2>
+                <p id="revoke-description" className="mt-2 text-sm leading-6 text-muted-foreground">
+                  <strong className="text-foreground">{revokeTarget.name}</strong> will immediately
+                  lose access to the sponsor console and be signed out.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 rounded-lg border border-brand/25 bg-brand/10 p-3 text-sm leading-5">
+              Their account will not be deleted. You can reinstate their access later from this
+              page.
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={revoking}
+                onClick={() => setRevokeTarget(null)}
+                className="rounded-md border border-input px-4 py-2 text-sm font-semibold transition-colors hover:bg-secondary disabled:opacity-50"
+              >
+                Keep access
+              </button>
+              <button
+                type="button"
+                disabled={revoking}
+                onClick={() => void confirmRevoke()}
+                className="flex items-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                <ShieldOff className="size-4" /> {revoking ? "Revoking…" : "Revoke access"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -141,18 +207,20 @@ function Row({
   action: React.ReactNode;
 }) {
   return (
-    <li className="card-surface grid gap-4 px-4 py-4 sm:grid-cols-[minmax(190px,1fr)_minmax(260px,1.5fr)_auto] sm:items-center">
-      <div>
-        <p className="text-sm font-semibold">{staff.name}</p>
-        <p className="text-xs text-muted-foreground">
-          {staff.email} · {roleLabel[staff.role]}
-        </p>
+    <li className="card-surface p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border/70 pb-4">
+        <div>
+          <p className="text-base font-semibold">{staff.name}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {staff.email} · {roleLabel[staff.role]}
+          </p>
+        </div>
+        {action}
       </div>
-      <div className="space-y-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <Sponsorship icon={Users} label="Clubs" names={clubs} />
         <Sponsorship icon={Trophy} label="Teams" names={teams} />
       </div>
-      {action}
     </li>
   );
 }
@@ -167,23 +235,28 @@ function Sponsorship({
   names: string[];
 }) {
   return (
-    <div className="flex items-start gap-2">
-      <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          {label}
+    <div className="rounded-lg border border-border/80 bg-secondary/35 p-3.5">
+      <div className="flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-md bg-background text-brand shadow-sm">
+          <Icon className="size-4" />
+        </span>
+        <p className="text-xs font-semibold uppercase tracking-wider">
+          {label} <span className="text-muted-foreground">· {names.length}</span>
         </p>
-        <div className="mt-1 flex flex-wrap gap-1.5">
-          {names.length ? (
-            names.map((name) => (
-              <span key={name} className="rounded-full bg-secondary px-2 py-1 text-xs font-medium">
-                {name}
-              </span>
-            ))
-          ) : (
-            <span className="text-xs text-muted-foreground">None</span>
-          )}
-        </div>
+      </div>
+      <div className="mt-3 flex min-h-7 flex-wrap gap-2">
+        {names.length ? (
+          names.map((name) => (
+            <span
+              key={name}
+              className="rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-semibold shadow-sm"
+            >
+              {name}
+            </span>
+          ))
+        ) : (
+          <span className="self-center text-xs italic text-muted-foreground">None assigned</span>
+        )}
       </div>
     </div>
   );

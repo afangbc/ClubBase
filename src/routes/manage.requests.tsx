@@ -46,7 +46,7 @@ function Requests() {
   };
 
   return (
-    <div className="max-w-3xl overflow-x-hidden">
+    <div className="max-w-3xl overflow-x-clip">
       <h1 className="text-4xl">Join Requests</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Students who followed the instructions on a private club you sponsor and are waiting on you.

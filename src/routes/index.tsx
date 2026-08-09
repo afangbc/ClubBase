@@ -17,7 +17,16 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Find clubs, join them, and see every meeting on one calendar.",
       },
+      { property: "og:site_name", content: "ClubHub" },
+      { property: "og:url", content: "https://club-hub-self.vercel.app/" },
+      { name: "robots", content: "index, follow" },
+      { name: "twitter:title", content: "ClubHub — One club app for your whole campus" },
+      {
+        name: "twitter:description",
+        content: "Find clubs, join them, and see every meeting on one calendar.",
+      },
     ],
+    links: [{ rel: "canonical", href: "https://club-hub-self.vercel.app/" }],
   }),
   component: Index,
 });
@@ -35,7 +44,8 @@ const demoLogins = [
 ];
 
 function Index() {
-  const { session, joined, ready, signIn, signUp, joinSchool } = useSession();
+  const { session, joined, ready, signIn, signUp, joinSchool, schoolDeparture, undoLeaveSchool } =
+    useSession();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [role, setRole] = useState<Role>("student");
@@ -49,23 +59,40 @@ function Index() {
   const [busy, setBusy] = useState(false);
 
   const destination = homeFor(session);
+  const leavingIndex =
+    !!session && (!session.emailVerified || joined || !!session.owner || session.role === "admin");
 
   useEffect(() => {
     // An unconfirmed address goes to the code screen before anything else.
     // Admins and owners never enter a campus code, so they skip step 2 entirely.
-    if (
-      ready &&
-      session &&
-      (!session.emailVerified || joined || session.owner || session.role === "admin")
-    )
-      navigate({ to: destination, replace: true });
-  }, [ready, session, joined, destination, navigate]);
+    if (ready && leavingIndex) navigate({ to: destination, replace: true });
+  }, [ready, leavingIndex, destination, navigate]);
+
+  // Never paint an auth step until the server has confirmed the session. After
+  // sign-in, keep the short redirect frame neutral instead of flashing the
+  // campus-code form for accounts that already belong to a school.
+  if (!ready || leavingIndex) return <OpeningClubHub />;
 
   const step: 1 | 2 = session ? 2 : 1;
   const placeholder = role === "student" ? "student@school.edu" : "first.last@district.org";
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "ClubHub",
+            url: "https://club-hub-self.vercel.app/",
+            applicationCategory: "EducationalApplication",
+            operatingSystem: "Web",
+            description:
+              "A school club management platform for clubs, teams, meetings, tutorials, and announcements.",
+          }),
+        }}
+      />
       <section className="relative flex flex-col justify-between bg-primary px-8 py-12 text-primary-foreground lg:px-14">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-lg bg-brand pt-0.5 font-display text-[2rem] leading-none text-brand-foreground">
@@ -80,7 +107,8 @@ function Index() {
           </h1>
           <p className="mt-5 text-base opacity-80">
             No more juggling a different app for every club just to find out where a meeting is.
-            Every club, team, announcement, and event at your school — one place, built for every campus.
+            Every club, team, announcement, and event at your school — one place, built for every
+            campus.
           </p>
           <ul className="mt-8 space-y-3 text-sm opacity-90">
             {[
@@ -168,7 +196,7 @@ function Index() {
                 />
               )}
               {mode === "signup" && role === "student" && (
-                <><label className="block">
+                <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Grade
                   </span>
@@ -184,12 +212,14 @@ function Index() {
                     ))}
                   </select>
                 </label>
+              )}
+              {mode === "signup" && role !== "admin" && (
                 <Field
                   label="School code"
                   value={code}
                   onChange={(value) => setCode(value.toUpperCase())}
                   placeholder="ABCD-1234"
-                /></>
+                />
               )}
               <Field
                 label="School email"
@@ -216,7 +246,8 @@ function Index() {
               )}
               {mode === "signup" && role === "teacher" && (
                 <p className="rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground">
-                  Teacher accounts stay locked until a school admin approves them.
+                  Your code sends your teacher account to that school's admin for approval. You
+                  cannot access sponsor tools until they approve it.
                 </p>
               )}
               {mode === "signup" && role === "admin" && (
@@ -286,6 +317,32 @@ function Index() {
                 Enter the access code your school gave you. It connects your account only to that
                 campus, so you never see clubs or teams from another school.
               </p>
+              {schoolDeparture && (
+                <div className="rounded-md border border-primary/35 bg-accent p-3">
+                  <p className="text-sm font-semibold">Changed your mind?</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    You can restore your account at {schoolDeparture.schoolName} until{" "}
+                    {new Date(schoolDeparture.expiresAt).toLocaleDateString()}. After that, the old
+                    school data is deleted forever. Joining a new school also permanently removes
+                    this recovery copy.
+                  </p>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        setError((await undoLeaveSchool()) ?? "");
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                    className="mt-3 rounded-md border border-primary px-3 py-2 text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-60"
+                  >
+                    Undo and restore my old school data
+                  </button>
+                </div>
+              )}
               <Field
                 label="School access code"
                 value={code}
@@ -302,6 +359,22 @@ function Index() {
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function OpeningClubHub() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-primary text-primary-foreground">
+      <div className="flex items-center gap-3" role="status" aria-label="Opening ClubHub">
+        <span className="flex size-11 items-center justify-center rounded-lg bg-brand pt-0.5 font-display text-[2rem] leading-none text-brand-foreground">
+          C
+        </span>
+        <div>
+          <p className="font-display text-4xl leading-none">ClubHub</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.2em] opacity-65">Opening your campus</p>
+        </div>
+      </div>
     </div>
   );
 }

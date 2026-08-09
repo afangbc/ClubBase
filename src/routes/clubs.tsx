@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Lock, Globe, Search, Check, Clock } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Lock, Globe, Search, Check, Clock, ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { SmoothCollapse } from "@/components/SmoothCollapse";
@@ -54,7 +54,7 @@ function ClubsPage() {
         Every club at {school?.name ?? "your school"} is listed here — private ones too.
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
+      <div className="control-flow-in mt-6 flex flex-wrap items-center gap-3">
         <div className="relative min-w-60 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -95,7 +95,7 @@ function ClubsPage() {
   );
 }
 
-export function ClubCard({ club }: { club: Club }) {
+export function ClubCard({ club, details = false }: { club: Club; details?: boolean }) {
   const { myClubs, pending, joinClub, leaveClub, requestClub } = useSession();
   const [showHow, setShowHow] = useState(false);
   const [note, setNote] = useState("");
@@ -114,7 +114,16 @@ export function ClubCard({ club }: { club: Club }) {
   return (
     <article className="card-surface flex flex-col p-4">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-2xl leading-tight">{club.name}</h2>
+        <div className="flex min-w-0 items-center gap-3">
+          {club.logo && (
+            <img
+              src={club.logo}
+              alt=""
+              className="size-11 shrink-0 rounded-lg bg-card object-contain p-1 shadow-sm"
+            />
+          )}
+          <h2 className="text-2xl leading-tight">{club.name}</h2>
+        </div>
         <span
           className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
             club.visibility === "public"
@@ -168,12 +177,22 @@ export function ClubCard({ club }: { club: Club }) {
 
       {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
 
-      <div className="mt-4 flex gap-2 pt-1">
+      <div className="mt-auto flex gap-2 pt-4">
         {isMember ? (
           <>
-            <span className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-success/12 py-2 text-sm font-semibold text-success">
-              <Check className="size-4" /> Joined
-            </span>
+            {details ? (
+              <Link
+                to="/clubs/$clubId"
+                params={{ clubId: club.id }}
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              >
+                View club <ArrowRight className="size-4" />
+              </Link>
+            ) : (
+              <span className="flex flex-1 items-center justify-center gap-1.5 rounded-md bg-success/12 py-2 text-sm font-semibold text-success">
+                <Check className="size-4" /> Joined
+              </span>
+            )}
             <button
               disabled={busy}
               onClick={() => void act(() => leaveClub(club.id))}

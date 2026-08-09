@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   CalendarPlus,
+  CalendarCheck,
   LayoutDashboard,
   LogOut,
   Megaphone,
@@ -9,13 +10,14 @@ import {
   Trophy,
 } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
-import { roleLabel } from "@/lib/campus-data";
+import { roleLabel, schoolInitials } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 const nav = [
   { to: "/manage", label: "My Clubs", icon: LayoutDashboard },
   { to: "/manage/teams", label: "Teams", icon: Trophy },
   { to: "/manage/events", label: "Meetings / Events", icon: CalendarPlus },
+  { to: "/manage/tutorials", label: "Tutorials", icon: CalendarCheck },
   { to: "/manage/announcements", label: "Announcements", icon: Megaphone },
   { to: "/manage/requests", label: "Requests", icon: UserCheck },
 ] as const;
@@ -43,8 +45,8 @@ export function StaffShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-border bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <Link to="/manage" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-md bg-brand font-display text-lg text-brand-foreground">
-              F
+            <span className="grid size-8 place-items-center rounded-md bg-brand text-center font-display text-xl leading-none text-brand-foreground">
+              {schoolInitials(school?.name)}
             </span>
             <span className="font-display text-2xl leading-none">
               ClubHub <span className="text-brand">Sponsor</span>

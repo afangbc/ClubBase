@@ -6,15 +6,18 @@ import {
   createClubFn,
   createEventFn,
   createTeamFn,
+  createTutorialFn,
   createSchoolFn,
   deleteAccountFn,
   deleteAnnouncementFn,
   deleteClubFn,
   deleteEventFn,
+  deleteTutorialFn,
   getState,
   joinClubFn,
   joinSchoolFn,
   joinTeamFn,
+  leaveSchoolFn,
   leaveClubFn,
   requestAdminFn,
   requestClubFn,
@@ -25,12 +28,17 @@ import {
   revokeAdminFn,
   setSchoolCodeFn,
   setSchoolColorsFn,
+  setEventRsvpFn,
+  setTutorialCancellationFn,
+  setTutorialSignupFn,
+  setTutorialTeacherFn,
   signInFn,
   signOutFn,
   signUpFn,
   updateClubFn,
   updatePrefFn,
   updateProfileFn,
+  undoLeaveSchoolFn,
   verifyEmailFn,
   type AppState,
   type Result,
@@ -40,7 +48,10 @@ import {
   type AdminRequest,
   type Announcement,
   type Club,
+  type ClubMember,
   type ClubEvent,
+  type EventRsvp,
+  type EventRsvpStatus,
   type JoinRequest,
   type Prefs,
   type Role,
@@ -50,6 +61,8 @@ import {
   type Session,
   type StaffAccount,
   type Team,
+  type TutorialOccurrence,
+  type TutorialTeacher,
 } from "./campus-data";
 import type { ClubInput } from "@/server/service";
 
@@ -72,9 +85,14 @@ type State = {
   prefs: Prefs;
   school: AppState["school"];
   clubs: Club[];
+  clubMembers: Record<string, ClubMember[]>;
   teams: Team[];
   events: ClubEvent[];
+  eventRsvps: EventRsvp[];
   announcements: Announcement[];
+  tutorialTeachers: TutorialTeacher[];
+  selectedTutorialTeachers: string[];
+  tutorials: TutorialOccurrence[];
   myClubs: string[];
   pending: string[];
   requests: JoinRequest[];
@@ -88,14 +106,28 @@ type State = {
   pendingAdminRequests: AdminRequest[];
   myAdminRequest: AdminRequest | null;
   schoolOptions: SchoolSummary[];
+  schoolDeparture: AppState["schoolDeparture"];
   ownersConfigured: boolean;
   refresh: () => Promise<void>;
   signIn: Action<[string, string]>;
-  signUp: Action<[{ name: string; email: string; role: Role; grade: string; password: string; schoolCode: string }]>;
+  signUp: Action<
+    [
+      {
+        name: string;
+        email: string;
+        role: Role;
+        grade: string;
+        password: string;
+        schoolCode: string;
+      },
+    ]
+  >;
   signOut: Action<[]>;
   verifyEmail: Action<[string]>;
   resendVerification: Action<[]>;
   joinSchool: Action<[string]>;
+  leaveSchool: Action<[string]>;
+  undoLeaveSchool: Action<[]>;
   updateProfile: Action<[{ name: string; email: string; grade: string }]>;
   changePassword: Action<[string, string, string]>;
   setPref: Action<[keyof Prefs, boolean]>;
@@ -110,15 +142,43 @@ type State = {
   deleteClub: Action<[string]>;
   addEvent: Action<[Omit<ClubEvent, "id">]>;
   removeEvent: Action<[string]>;
-  addAnnouncement: Action<[{ clubId?: string; teamId?: string; title: string; body: string }]>;
+  setEventRsvp: Action<[string, EventRsvpStatus]>;
+  addAnnouncement: Action<
+    [{ clubId?: string; teamId?: string; schoolWide?: boolean; title: string; body: string }]
+  >;
   removeAnnouncement: Action<[string]>;
+  createTutorial: Action<
+    [
+      {
+        recurring: boolean;
+        weekday?: number;
+        date?: string;
+        start: string;
+        end: string;
+        location: string;
+      },
+    ]
+  >;
+  deleteTutorial: Action<[string]>;
+  setTutorialCancellation: Action<[string, string, boolean]>;
+  setTutorialTeacher: Action<[string, boolean]>;
+  setTutorialSignup: Action<[string, string, boolean]>;
   resolveRequest: Action<[string, boolean]>;
   reviewStaff: Action<[string, boolean]>;
   updateSchoolCode: Action<[string]>;
   updateSchoolColors: Action<[{ primaryColor: string; secondaryColor: string }]>;
-  requestAdmin: Action<[{
-    name: string; district: string; mascot: string; primaryColor: string; secondaryColor: string; message: string;
-  }]>;
+  requestAdmin: Action<
+    [
+      {
+        name: string;
+        district: string;
+        mascot: string;
+        primaryColor: string;
+        secondaryColor: string;
+        message: string;
+      },
+    ]
+  >;
   reviewAdminRequest: Action<[string, boolean]>;
   revokeAdmin: Action<[string]>;
   createSchool: (input: {
@@ -135,9 +195,14 @@ const emptyState: AppState = {
   prefs: defaultPrefs,
   school: null,
   clubs: [],
+  clubMembers: {},
   teams: [],
   events: [],
+  eventRsvps: [],
   announcements: [],
+  tutorialTeachers: [],
+  selectedTutorialTeachers: [],
+  tutorials: [],
   myClubs: [],
   pending: [],
   requests: [],
@@ -148,6 +213,7 @@ const emptyState: AppState = {
   adminRequests: [],
   myAdminRequest: null,
   schoolOptions: [],
+  schoolDeparture: null,
   ownersConfigured: true,
   emailInConsoleMode: false,
 };
@@ -187,7 +253,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     const school = state.school;
     if (!school) {
-      ["--primary", "--primary-foreground", "--brand", "--brand-foreground"].forEach((key) => root.style.removeProperty(key));
+      ["--primary", "--primary-foreground", "--brand", "--brand-foreground"].forEach((key) =>
+        root.style.removeProperty(key),
+      );
       return;
     }
     const foreground = (hex: string) => {
@@ -230,9 +298,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       prefs: state.prefs,
       school: state.school,
       clubs: state.clubs,
+      clubMembers: state.clubMembers,
       teams: state.teams,
       events: state.events,
+      eventRsvps: state.eventRsvps,
       announcements: state.announcements,
+      tutorialTeachers: state.tutorialTeachers,
+      selectedTutorialTeachers: state.selectedTutorialTeachers,
+      tutorials: state.tutorials,
       myClubs: state.myClubs,
       pending: state.pending,
       requests: state.requests,
@@ -246,6 +319,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       pendingAdminRequests: state.adminRequests.filter((r) => r.status === "pending"),
       myAdminRequest: state.myAdminRequest,
       schoolOptions: state.schoolOptions,
+      schoolDeparture: state.schoolDeparture,
       ownersConfigured: state.ownersConfigured,
       refresh,
 
@@ -255,6 +329,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       verifyEmail: (code) => run(() => verifyEmailFn({ data: { code } })),
       resendVerification: () => run(() => resendVerificationFn()),
       joinSchool: (code) => run(() => joinSchoolFn({ data: { code } })),
+      leaveSchool: (password) => run(() => leaveSchoolFn({ data: { password } })),
+      undoLeaveSchool: () => run(() => undoLeaveSchoolFn()),
       updateProfile: (input) => run(() => updateProfileFn({ data: input })),
       changePassword: (current, next, confirm) =>
         run(() => changePasswordFn({ data: { current, next, confirm } })),
@@ -273,8 +349,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
       addEvent: (event) => run(() => createEventFn({ data: event })),
       removeEvent: (id) => run(() => deleteEventFn({ data: { id } })),
+      setEventRsvp: (eventId, status) => run(() => setEventRsvpFn({ data: { eventId, status } })),
       addAnnouncement: (post) => run(() => createAnnouncementFn({ data: post })),
       removeAnnouncement: (id) => run(() => deleteAnnouncementFn({ data: { id } })),
+      createTutorial: (input) => run(() => createTutorialFn({ data: input })),
+      deleteTutorial: (scheduleId) => run(() => deleteTutorialFn({ data: { scheduleId } })),
+      setTutorialCancellation: (scheduleId, date, cancelled) =>
+        run(() => setTutorialCancellationFn({ data: { scheduleId, date, cancelled } })),
+      setTutorialTeacher: (teacherId, selected) =>
+        run(() => setTutorialTeacherFn({ data: { teacherId, selected } })),
+      setTutorialSignup: (scheduleId, date, attending) =>
+        run(() => setTutorialSignupFn({ data: { scheduleId, date, attending } })),
 
       resolveRequest: (id, approve) => run(() => reviewMembershipFn({ data: { id, approve } })),
       reviewStaff: (userId, approve) => run(() => reviewStaffFn({ data: { userId, approve } })),

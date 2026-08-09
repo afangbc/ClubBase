@@ -17,16 +17,16 @@ export type AccountStatus = "active" | "pending" | "denied";
 
 export type ClubCategory = "Academic" | "Service" | "Arts" | "STEM" | "Culture" | "Athletics";
 
-export const CATEGORIES: ClubCategory[] = [
-  "Academic",
-  "STEM",
-  "Service",
-  "Arts",
-  "Culture",
-];
+export const CATEGORIES: ClubCategory[] = ["Academic", "STEM", "Service", "Arts", "Culture"];
 
 export const GRADES = ["9th", "10th", "11th", "12th"] as const;
 export type Grade = (typeof GRADES)[number];
+
+/** ClubHub's campus-neutral house palette, available as an admin branding preset. */
+export const CLUBHUB_COLORS = {
+  primaryColor: "#243b80",
+  secondaryColor: "#2dd4bf",
+} as const;
 
 export type Session = {
   id: string;
@@ -158,7 +158,15 @@ export type Club = {
   meets: string;
   members: number;
   blurb: string;
+  logo?: string;
   joinInstructions?: string | undefined;
+};
+
+/** A privacy-safe roster entry visible only inside clubs the viewer belongs to or manages. */
+export type ClubMember = {
+  id: string;
+  name: string;
+  grade?: string | undefined;
 };
 
 export type Team = {
@@ -182,10 +190,46 @@ export type ClubEvent = {
   start: string;
   end: string;
   location: string;
+  description?: string;
+};
+
+export type EventRsvpStatus = "going" | "maybe" | "not-going";
+
+export type EventRsvp = {
+  eventId: string;
+  userId: string;
+  name: string;
+  status: EventRsvpStatus;
+};
+
+export type TutorialTeacher = {
+  id: string;
+  name: string;
+  email: string;
+  department?: string | undefined;
+};
+
+export type TutorialOccurrence = {
+  /** Stable occurrence key: the schedule id plus its calendar date. */
+  id: string;
+  scheduleId: string;
+  teacherId: string;
+  teacherName: string;
+  date: string;
+  start: string;
+  end: string;
+  location: string;
+  recurring: boolean;
+  cancelled: boolean;
+  signupCount: number;
+  signedUp: boolean;
+  /** Only the hosting teacher and campus admins receive student names. */
+  studentNames?: string[] | undefined;
 };
 
 export type Announcement = {
   id: string;
+  schoolWide?: boolean;
   clubId?: string;
   teamId?: string;
   title: string;
@@ -297,13 +341,43 @@ export const roleLabel: Record<Role, string> = {
   admin: "School Admin",
 };
 
+/** Compact campus mark for the header: "Lone Star High School" becomes "LS". */
+export function schoolInitials(name: string | undefined): string {
+  if (!name?.trim()) return "C";
+  const genericWords = new Set([
+    "the",
+    "of",
+    "high",
+    "middle",
+    "elementary",
+    "school",
+    "academy",
+    "campus",
+  ]);
+  const meaningful = name
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/[^a-z0-9]/gi, ""))
+    .filter((word) => word && !genericWords.has(word.toLowerCase()));
+  const words = meaningful.length > 0 ? meaningful : [name.trim()];
+  return words
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 /** School-issued email is required, but ClubHub supports many districts. */
 export function emailProblem(email: string, role: Role): string | null {
   const value = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Enter your full school email address.";
   const domain = value.split("@")[1] ?? "";
   const personalDomains = new Set([
-    "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com", "aol.com",
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "aol.com",
   ]);
   if (personalDomains.has(domain))
     return `${role === "student" ? "Students" : "Staff"} must use an email address issued by their school or district.`;

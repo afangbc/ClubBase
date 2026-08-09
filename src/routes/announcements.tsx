@@ -31,8 +31,16 @@ function AnnouncementsPage() {
   const [filter, setFilter] = useState("all");
 
   const feed = announcements.filter((post) => {
-    const target = post.clubId ? `club:${post.clubId}` : `team:${post.teamId}`;
-    const joinedTarget = post.clubId ? myClubs.includes(post.clubId) : !!post.teamId && teams.some((team) => team.id === post.teamId);
+    const target = post.schoolWide
+      ? "school"
+      : post.clubId
+        ? `club:${post.clubId}`
+        : `team:${post.teamId}`;
+    const joinedTarget = post.schoolWide
+      ? true
+      : post.clubId
+        ? myClubs.includes(post.clubId)
+        : !!post.teamId && teams.some((team) => team.id === post.teamId);
     return joinedTarget && (filter === "all" || target === filter);
   });
   const joined = clubs.filter((c) => myClubs.includes(c.id));
@@ -41,14 +49,17 @@ function AnnouncementsPage() {
     <div className="max-w-3xl">
       <h1 className="text-4xl">Announcements</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Posts from the sponsors of the clubs you joined — newest first.
+        School-wide updates and posts from the clubs and teams you joined — newest first.
       </p>
 
-      {joined.length + teams.length > 1 && (
-        <div className="mt-6 flex flex-wrap gap-1.5">
+      {(joined.length + teams.length > 1 || announcements.some((post) => post.schoolWide)) && (
+        <div className="control-flow-in mt-6 flex flex-wrap gap-1.5">
           <Chip active={filter === "all"} onClick={() => setFilter("all")}>
             All
           </Chip>
+          {announcements.some((post) => post.schoolWide) && (
+            <Chip active={filter === "school"} onClick={() => setFilter("school")}>School-wide</Chip>
+          )}
           {joined.map((c) => (
             <Chip key={c.id} active={filter === `club:${c.id}`} onClick={() => setFilter(`club:${c.id}`)}>
               {c.name}
@@ -58,7 +69,7 @@ function AnnouncementsPage() {
         </div>
       )}
 
-      {myClubs.length === 0 && teams.length === 0 ? (
+      {myClubs.length === 0 && teams.length === 0 && !announcements.some((post) => post.schoolWide) ? (
         <div className="card-surface mt-6 p-10 text-center text-sm text-muted-foreground">
           Join a club or team and its announcements land here.{" "}
           <Link to="/clubs" className="font-semibold text-foreground underline">
@@ -81,7 +92,7 @@ function AnnouncementsPage() {
                 <div className="flex-1">
                   <h2 className="text-2xl leading-tight">{a.title}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {(a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name)} · {a.author} ·{" "}
+                    {a.schoolWide ? "School-wide" : a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name} · {a.author} ·{" "}
                     {new Date(`${a.postedAt}T12:00:00`).toLocaleDateString(undefined, {
                       month: "long",
                       day: "numeric",
