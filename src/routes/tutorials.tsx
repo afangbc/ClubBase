@@ -6,7 +6,7 @@ import { formatTime } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/tutorials")({
-  head: () => ({ meta: [{ title: "Tutorials — ClubHub" }] }),
+  head: () => ({ meta: [{ title: "Tutorials — ClubBase" }] }),
   component: () => (
     <AppShell>
       <Tutorials />

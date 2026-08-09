@@ -49,7 +49,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
               {schoolInitials(school?.name)}
             </span>
             <span className="font-display text-3xl leading-none">
-              ClubHub <span className="text-brand">Sponsor</span>
+              ClubBase <span className="text-brand">Sponsor</span>
             </span>
           </Link>
           <span className="hidden text-xs uppercase tracking-widest opacity-60 sm:inline">

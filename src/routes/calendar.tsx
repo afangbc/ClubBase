@@ -26,12 +26,12 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/calendar")({
   head: () => ({
     meta: [
-      { title: "Calendar — ClubHub" },
+      { title: "Calendar — ClubBase" },
       {
         name: "description",
         content: "One calendar with every meeting from the clubs and teams you belong to.",
       },
-      { property: "og:title", content: "Calendar — ClubHub" },
+      { property: "og:title", content: "Calendar — ClubBase" },
       { property: "og:description", content: "Every club meeting you belong to, on one calendar." },
     ],
   }),

@@ -48,7 +48,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="grid size-10 place-items-center rounded-lg bg-brand text-center font-display text-2xl leading-none text-brand-foreground">
               {schoolInitials(school?.name)}
             </span>
-            <span className="font-display text-3xl leading-none">ClubHub</span>
+            <span className="font-display text-3xl leading-none">ClubBase</span>
           </Link>
           <span className="hidden text-xs uppercase tracking-widest opacity-70 sm:inline">
             {school?.name} · {school?.district}

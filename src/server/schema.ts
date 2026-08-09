@@ -11,7 +11,7 @@ import {
 } from "@/lib/campus-data";
 import { hashPassword } from "./crypto";
 
-export const DB_VERSION = 14;
+export const DB_VERSION = 15;
 
 export type SchoolRecord = {
   id: string;
@@ -160,7 +160,7 @@ export type EmailVerificationRecord = {
   attempts: number;
 };
 
-/** An account asking a ClubHub owner to approve a brand-new campus. */
+/** An account asking a ClubBase owner to approve a brand-new campus. */
 export type AdminRequestRecord = {
   id: string;
   userId: string;
@@ -253,7 +253,7 @@ export async function buildSeedDatabase(): Promise<Database> {
       {
         id: "u-nguyen",
         name: "Alicia Nguyen",
-        email: "admin@demo.clubhub.app",
+        email: "admin@demo.clubbase.app",
         role: "admin",
         status: "active",
         passwordHash,
@@ -266,7 +266,7 @@ export async function buildSeedDatabase(): Promise<Database> {
       {
         id: "u-alvarez",
         name: "Marcus Alvarez",
-        email: "teacher@demo.clubhub.app",
+        email: "teacher@demo.clubbase.app",
         role: "teacher",
         status: "active",
         passwordHash,
@@ -312,7 +312,8 @@ export async function buildSeedDatabase(): Promise<Database> {
       ].map(([id, name, handle, grade]) => ({
         id: id!,
         name: name!,
-        email: id === "u-rivera" ? "student@demo.clubhub.app" : `${handle}@${SCHOOL.studentDomain}`,
+        email:
+          id === "u-rivera" ? "student@demo.clubbase.app" : `${handle}@${SCHOOL.studentDomain}`,
         role: "student" as const,
         status: "active" as const,
         passwordHash,

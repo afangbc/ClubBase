@@ -8,13 +8,13 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "Account Settings — ClubHub" },
+      { title: "Account Settings — ClubBase" },
       {
         name: "description",
         content:
-          "Manage your ClubHub profile, password, notification preferences, school membership, and account deletion.",
+          "Manage your ClubBase profile, password, notification preferences, school membership, and account deletion.",
       },
-      { property: "og:title", content: "Account Settings — ClubHub" },
+      { property: "og:title", content: "Account Settings — ClubBase" },
       { property: "og:description", content: "Profile, password, notifications, and privacy." },
     ],
   }),
@@ -145,7 +145,7 @@ function AccountPage() {
         </form>
       </Section>
 
-      <Section title="Notifications & privacy" desc="Control what ClubHub sends you.">
+      <Section title="Notifications & privacy" desc="Control what ClubBase sends you.">
         <ul className="divide-y divide-border">
           {prefRows.map((r) => (
             <li key={r.key} className="flex items-center justify-between gap-4 py-3">
@@ -174,7 +174,7 @@ function AccountPage() {
         </ul>
       </Section>
 
-      <Section title="School" desc="ClubHub only ever shows clubs from your campus.">
+      <Section title="School" desc="ClubBase only ever shows clubs from your campus.">
         <dl className="grid gap-2 text-sm">
           <Row k="School" v={school ? `${school.name} · ${school.mascot}` : "Not assigned"} />
           <Row k="District" v={school?.district ?? "—"} />

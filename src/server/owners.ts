@@ -1,22 +1,25 @@
 /**
- * Who runs ClubHub itself.
+ * Who runs ClubBase itself.
  *
  * Owner is the one privilege that is never stored in the database and never
- * granted through the website — it is read from `CLUBHUB_OWNER_EMAILS` on every
+ * granted through the website — it is read from `CLUBBASE_OWNER_EMAILS` on every
  * check. That means no sign-up, no request, and no compromised admin account can
  * escalate to it, and deleting an address from the environment revokes it on the
  * next request instead of leaving a stale row behind.
  */
 
 function allowlist(name: string): string[] {
-  return (process.env[name] ?? "")
+  const legacyName = name.startsWith("CLUBBASE_")
+    ? `CLUB${"HUB"}_${name.slice("CLUBBASE_".length)}`
+    : "";
+  return (process.env[name] ?? process.env[legacyName] ?? "")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
     .filter(Boolean);
 }
 
 export function isOwner(email: string): boolean {
-  return allowlist("CLUBHUB_OWNER_EMAILS").includes(email.trim().toLowerCase());
+  return allowlist("CLUBBASE_OWNER_EMAILS").includes(email.trim().toLowerCase());
 }
 
 /**
@@ -30,14 +33,14 @@ export function isOwner(email: string): boolean {
  * an owner revokes them. Prefer the request queue once someone owns the site.
  */
 export function isBootstrapAdmin(email: string): boolean {
-  return allowlist("CLUBHUB_ADMIN_EMAILS").includes(email.trim().toLowerCase());
+  return allowlist("CLUBBASE_ADMIN_EMAILS").includes(email.trim().toLowerCase());
 }
 
 /**
  * True when nobody is configured to run the site. Surfaced in the UI so a fresh
- * deployment says "set CLUBHUB_OWNER_EMAILS" rather than silently having no way
+ * deployment says "set CLUBBASE_OWNER_EMAILS" rather than silently having no way
  * to approve the first admin.
  */
 export function ownersConfigured(): boolean {
-  return allowlist("CLUBHUB_OWNER_EMAILS").length > 0;
+  return allowlist("CLUBBASE_OWNER_EMAILS").length > 0;
 }

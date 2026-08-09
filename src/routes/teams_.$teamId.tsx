@@ -19,7 +19,7 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/teams_/$teamId")({
   head: () => ({
     meta: [
-      { title: "Team Details — ClubHub" },
+      { title: "Team Details — ClubBase" },
       { name: "description", content: "Team roster, announcements, meetings, and events." },
     ],
   }),

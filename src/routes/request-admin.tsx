@@ -6,7 +6,7 @@ import { homeFor } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/request-admin")({
-  head: () => ({ meta: [{ title: "Apply for a new school — ClubHub" }] }),
+  head: () => ({ meta: [{ title: "Apply for a new school — ClubBase" }] }),
   component: RequestAdmin,
 });
 
@@ -36,9 +36,9 @@ function RequestAdmin() {
     return (
       <Frame>
         <StatusIcon kind="waiting" />
-        <h1 className="mt-4 text-3xl">Waiting on ClubHub</h1>
+        <h1 className="mt-4 text-3xl">Waiting on ClubBase</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          We've got your request to create {myAdminRequest.schoolName}. A ClubHub owner reviews
+          We've got your request to create {myAdminRequest.schoolName}. A ClubBase owner reviews
           every application by hand.
         </p>
         <dl className="mt-6 grid gap-2 text-left text-sm">
@@ -111,7 +111,7 @@ function RequestAdmin() {
           value={message}
           onChange={setMessage}
           rows={5}
-          placeholder="Your role at the school, who can verify it, and how your school will use ClubHub."
+          placeholder="Your role at the school, who can verify it, and how your school will use ClubBase."
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <button

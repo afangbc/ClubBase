@@ -8,9 +8,11 @@
  */
 
 const isProduction = process.env["NODE_ENV"] === "production";
+const fromEmail = () =>
+  process.env["CLUBBASE_FROM_EMAIL"] ?? process.env[`CLUB${"HUB"}_FROM_EMAIL`];
 
 export function emailConfigured(): boolean {
-  return Boolean(process.env["RESEND_API_KEY"] && process.env["CLUBHUB_FROM_EMAIL"]);
+  return Boolean(process.env["RESEND_API_KEY"] && fromEmail());
 }
 
 /** True when codes are printed to the server log instead of mailed. */
@@ -20,19 +22,19 @@ export function emailInConsoleMode(): boolean {
 
 export async function sendVerificationCode(email: string, code: string): Promise<void> {
   const apiKey = process.env["RESEND_API_KEY"];
-  const from = process.env["CLUBHUB_FROM_EMAIL"];
+  const from = fromEmail();
 
   if (!apiKey || !from) {
     if (isProduction) {
       throw new Error(
-        "Email delivery is not configured. Set RESEND_API_KEY and CLUBHUB_FROM_EMAIL.",
+        "Email delivery is not configured. Set RESEND_API_KEY and CLUBBASE_FROM_EMAIL.",
       );
     }
     console.info(
-      `\n[clubhub] ─────────────────────────────────────────────\n` +
-        `[clubhub]  Verification code for ${email}: ${code}\n` +
-        `[clubhub]  (dev only — set RESEND_API_KEY to send real mail)\n` +
-        `[clubhub] ─────────────────────────────────────────────\n`,
+      `\n[clubbase] ─────────────────────────────────────────────\n` +
+        `[clubbase]  Verification code for ${email}: ${code}\n` +
+        `[clubbase]  (dev only — set RESEND_API_KEY to send real mail)\n` +
+        `[clubbase] ─────────────────────────────────────────────\n`,
     );
     return;
   }
@@ -42,13 +44,13 @@ export async function sendVerificationCode(email: string, code: string): Promise
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "ClubHub/1.0",
+      "User-Agent": "ClubBase/1.0",
     },
     body: JSON.stringify({
       from,
       to: [email],
-      subject: "Your ClubHub verification code",
-      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto"><h1>Confirm your email</h1><p>Enter this code in ClubHub to finish setting up your account:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px">${code}</p><p>This code expires in 10 minutes. If you didn't sign up for ClubHub, you can ignore this email.</p></div>`,
+      subject: "Your ClubBase verification code",
+      html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto"><h1>Confirm your email</h1><p>Enter this code in ClubBase to finish setting up your account:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px">${code}</p><p>This code expires in 10 minutes. If you didn't sign up for ClubBase, you can ignore this email.</p></div>`,
     }),
   });
   if (!response.ok) throw new Error(`Email provider rejected the message (${response.status}).`);

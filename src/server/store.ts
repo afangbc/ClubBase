@@ -47,12 +47,14 @@ async function migrate(parsed: LegacyDatabase): Promise<Database> {
   next.schoolDepartures = next.schoolDepartures ?? [];
 
   const neutralDemoEmails: Record<string, { from: string; to: string }> = {
-    "u-rivera": { from: "jordan.rivera.123@k12.friscoisd.org", to: "student@demo.clubhub.app" },
-    "u-alvarez": { from: "marcus.alvarez@friscoisd.org", to: "teacher@demo.clubhub.app" },
-    "u-nguyen": { from: "alicia.nguyen@friscoisd.org", to: "admin@demo.clubhub.app" },
+    "u-rivera": { from: "jordan.rivera.123@k12.friscoisd.org", to: "student@demo.clubbase.app" },
+    "u-alvarez": { from: "marcus.alvarez@friscoisd.org", to: "teacher@demo.clubbase.app" },
+    "u-nguyen": { from: "alicia.nguyen@friscoisd.org", to: "admin@demo.clubbase.app" },
   };
   next.users = next.users.map((user) => {
     const replacement = neutralDemoEmails[user.id];
+    if (replacement && user.email.toLowerCase().includes("@demo."))
+      return { ...user, email: replacement.to };
     return replacement && user.email.toLowerCase() === replacement.from
       ? { ...user, email: replacement.to }
       : user;
@@ -154,15 +156,15 @@ async function load(): Promise<Database> {
       if (parsed.version >= 1 && parsed.version < DB_VERSION) {
         const migrated = await migrate(parsed);
         await driver.write(JSON.stringify(migrated, null, 2));
-        console.info(`[clubhub] Migrated database to version ${DB_VERSION}.`);
+        console.info(`[clubbase] Migrated database to version ${DB_VERSION}.`);
         return migrated;
       }
       throw new Error(
-        `[clubhub] Database is version ${String(parsed.version)}, but this build expects ${DB_VERSION}. Refusing to overwrite it.`,
+        `[clubbase] Database is version ${String(parsed.version)}, but this build expects ${DB_VERSION}. Refusing to overwrite it.`,
       );
     } catch (error) {
       if (error instanceof SyntaxError) {
-        throw new Error("[clubhub] The database is unreadable. Refusing to overwrite it.", {
+        throw new Error("[clubbase] The database is unreadable. Refusing to overwrite it.", {
           cause: error,
         });
       }
@@ -172,7 +174,7 @@ async function load(): Promise<Database> {
 
   const seeded = await buildSeedDatabase();
   await driver.write(JSON.stringify(seeded, null, 2));
-  console.info(`[clubhub] Seeded a new database via ${driver.kind}.`);
+  console.info(`[clubbase] Seeded a new database via ${driver.kind}.`);
   return seeded;
 }
 

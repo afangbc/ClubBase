@@ -8,12 +8,12 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/owner")({
   head: () => ({
     meta: [
-      { title: "Owner Console — ClubHub" },
+      { title: "Owner Console — ClubBase" },
       {
         name: "description",
-        content: "Approve school admins and add campuses to ClubHub.",
+        content: "Approve school admins and add campuses to ClubBase.",
       },
-      { property: "og:title", content: "Owner Console — ClubHub" },
+      { property: "og:title", content: "Owner Console — ClubBase" },
       { property: "og:description", content: "Approve school admins and add campuses." },
     ],
   }),
@@ -43,7 +43,7 @@ function OwnerConsole() {
             F
           </span>
           <span className="font-display text-2xl leading-none">
-            ClubHub <span className="text-brand">Owner</span>
+            ClubBase <span className="text-brand">Owner</span>
           </span>
           <div className="ml-auto mr-12 flex items-center gap-3">
             <span className="hidden text-xs opacity-70 sm:inline">{session.email}</span>

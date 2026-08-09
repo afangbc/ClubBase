@@ -30,7 +30,9 @@ export function TextField({
   /** Rooms already used on campus, offered as autocomplete without limiting input. */
   suggestions?: string[];
 }) {
-  const listId = suggestions?.length ? `${label.replace(/\W+/g, "-").toLowerCase()}-options` : undefined;
+  const listId = suggestions?.length
+    ? `${label.replace(/\W+/g, "-").toLowerCase()}-options`
+    : undefined;
   return (
     <Label label={label}>
       <input
@@ -43,7 +45,9 @@ export function TextField({
       />
       {listId && (
         <datalist id={listId}>
-          {suggestions?.map((option) => <option key={option} value={option} />)}
+          {suggestions?.map((option) => (
+            <option key={option} value={option} />
+          ))}
         </datalist>
       )}
     </Label>
@@ -74,7 +78,9 @@ export function ClockField({
 
   const twelve = safeHour % 12 === 0 ? 12 : safeHour % 12;
   const meridiem = safeHour < 12 ? "AM" : "PM";
-  const minuteOptions = MINUTES.includes(safeMinute) ? MINUTES : [...MINUTES, safeMinute].sort((a, b) => a - b);
+  const minuteOptions = MINUTES.includes(safeMinute)
+    ? MINUTES
+    : [...MINUTES, safeMinute].sort((a, b) => a - b);
 
   const emit = (hour12: number, m: number, suffix: "AM" | "PM") => {
     const base = Math.min(12, Math.max(1, hour12)) % 12;

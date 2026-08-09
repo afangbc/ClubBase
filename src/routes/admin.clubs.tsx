@@ -10,13 +10,13 @@ import { campusRooms } from "@/lib/staff";
 export const Route = createFileRoute("/admin/clubs")({
   head: () => ({
     meta: [
-      { title: "Campus Clubs — ClubHub Admin" },
+      { title: "Campus Clubs — ClubBase Admin" },
       {
         name: "description",
         content:
           "Create clubs, assign sponsors, and edit every club on campus: names, meeting times, rooms, and how students join.",
       },
-      { property: "og:title", content: "Campus Clubs — ClubHub Admin" },
+      { property: "og:title", content: "Campus Clubs — ClubBase Admin" },
       { property: "og:description", content: "Create, rename, retime, and reassign any club." },
     ],
   }),

@@ -69,7 +69,7 @@
 
 :root {
   --radius: 0.5rem;
-  /* ClubHub's campus-neutral public identity: deep indigo + electric teal. */
+  /* ClubBase's campus-neutral public identity: deep indigo + electric teal. */
   --background: oklch(0.976 0.011 250);
   --foreground: oklch(0.21 0.055 264);
   --surface: oklch(0.995 0.004 250);

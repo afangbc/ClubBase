@@ -7,12 +7,12 @@ import { staffClubs } from "@/lib/staff";
 export const Route = createFileRoute("/manage/requests")({
   head: () => ({
     meta: [
-      { title: "Join Requests — ClubHub Staff" },
+      { title: "Join Requests — ClubBase Staff" },
       {
         name: "description",
         content: "Approve or decline students requesting to join the private clubs you sponsor.",
       },
-      { property: "og:title", content: "Join Requests — ClubHub Staff" },
+      { property: "og:title", content: "Join Requests — ClubBase Staff" },
       { property: "og:description", content: "Approve students into your clubs in one tap." },
     ],
   }),

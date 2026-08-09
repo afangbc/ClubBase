@@ -113,7 +113,11 @@ export function ClubForm({
           </span>
           <div className="mt-1 flex flex-wrap items-center gap-3 rounded-md border border-input bg-secondary/40 p-3">
             {logo ? (
-              <img src={logo} alt="Club logo preview" className="size-16 rounded-lg bg-card object-contain p-1 shadow-sm" />
+              <img
+                src={logo}
+                alt="Club logo preview"
+                className="size-16 rounded-lg bg-card object-contain p-1 shadow-sm"
+              />
             ) : (
               <span className="grid size-16 place-items-center rounded-lg border border-dashed border-input bg-card text-xs text-muted-foreground">
                 No logo
@@ -135,8 +139,16 @@ export function ClubForm({
                     webp: "image/webp",
                     gif: "image/gif",
                   };
-                  const supportedType = ["image/png", "image/x-png", "image/jpeg", "image/webp", "image/gif"].includes(file.type);
-                  const supportedExtension = ["png", "jpg", "jpeg", "webp", "gif"].includes(extension ?? "");
+                  const supportedType = [
+                    "image/png",
+                    "image/x-png",
+                    "image/jpeg",
+                    "image/webp",
+                    "image/gif",
+                  ].includes(file.type);
+                  const supportedExtension = ["png", "jpg", "jpeg", "webp", "gif"].includes(
+                    extension ?? "",
+                  );
                   if (!supportedType && !supportedExtension) {
                     setLogoError("Choose a PNG, JPEG, WebP, or GIF image.");
                     return;
@@ -148,7 +160,10 @@ export function ClubForm({
                   const reader = new FileReader();
                   reader.onload = () => {
                     const result = typeof reader.result === "string" ? reader.result : "";
-                    const mime = file.type === "image/x-png" ? "image/png" : file.type || mimeByExtension[extension ?? ""];
+                    const mime =
+                      file.type === "image/x-png"
+                        ? "image/png"
+                        : file.type || mimeByExtension[extension ?? ""];
                     setLogo(mime ? result.replace(/^data:[^;]+;/i, `data:${mime};`) : result);
                     setLogoError("");
                   };
@@ -156,9 +171,15 @@ export function ClubForm({
                   reader.readAsDataURL(file);
                 }}
               />
-              <p className="mt-1 text-[11px] text-muted-foreground">Square images work best. Maximum 330 KB.</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Square images work best. Maximum 330 KB.
+              </p>
               {logo && (
-                <button type="button" onClick={() => setLogo("")} className="mt-1 text-xs font-semibold text-destructive hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setLogo("")}
+                  className="mt-1 text-xs font-semibold text-destructive hover:underline"
+                >
                   Remove logo
                 </button>
               )}

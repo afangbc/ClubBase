@@ -90,7 +90,7 @@ export type AppState = {
   myAdminRequest: AdminRequest | null;
   /** Existing campuses, shown only to owners. */
   schoolOptions: SchoolSummary[];
-  /** False when CLUBHUB_OWNER_EMAILS is unset, so setup can't fail silently. */
+  /** False when CLUBBASE_OWNER_EMAILS is unset, so setup can't fail silently. */
   ownersConfigured: boolean;
   /** True in local dev with no mail provider — codes go to the server console. */
   emailInConsoleMode: boolean;
@@ -210,7 +210,7 @@ async function requireEnrolled(): Promise<
 }
 
 /**
- * The gate on everything only the people running ClubHub may do. It re-reads the
+ * The gate on everything only the people running ClubBase may do. It re-reads the
  * environment allowlist rather than trusting anything on the account, so this
  * cannot be reached by editing a record or replaying a stale session.
  */
@@ -220,7 +220,7 @@ async function requireOwner(): Promise<
   const user = await currentUser();
   if (!user) return { user: null, error: "You're signed out. Sign in and try again." };
   if (!user.emailVerified) return { user: null, error: "Confirm your email address first." };
-  if (!isOwner(user.email)) return { user: null, error: "Only a ClubHub owner can do that." };
+  if (!isOwner(user.email)) return { user: null, error: "Only a ClubBase owner can do that." };
   return { user, error: null };
 }
 
@@ -680,7 +680,7 @@ export async function signUp(input: {
       name,
       email,
       role: bootstrap ? "admin" : input.role,
-      // Staff wait: teachers on a school admin, admins on a ClubHub owner.
+      // Staff wait: teachers on a school admin, admins on a ClubBase owner.
       // Students are in as soon as they have the campus code.
       status: input.role === "student" || privileged ? "active" : "pending",
       passwordHash,
@@ -720,7 +720,7 @@ async function issueVerificationCode(user: UserRecord): Promise<Result> {
   try {
     await sendVerificationCode(user.email, code);
   } catch (error) {
-    console.error("[clubhub] Verification email failed", error);
+    console.error("[clubbase] Verification email failed", error);
     return fail("We couldn't send the confirmation email. Try again in a moment.");
   }
 
@@ -810,7 +810,7 @@ export async function joinSchool(input: { code: string }): Promise<Result> {
   if (!user) return fail("You're signed out. Sign in and try again.");
   if (!user.emailVerified) return fail("Confirm your email address first.");
   if (user.role === "admin")
-    return fail("School admins receive a campus when a ClubHub owner approves their application.");
+    return fail("School admins receive a campus when a ClubBase owner approves their application.");
   const transferringAfterRevocation = user.role === "teacher" && user.status === "denied";
   if (user.schoolId && !transferringAfterRevocation)
     return fail("Your account already belongs to a campus.");
@@ -1045,7 +1045,7 @@ function schoolCode(name: string): string {
 export type CreateSchoolResult = Result & { joinCode?: string };
 
 /**
- * Only a ClubHub owner adds a campus. Nobody can sign up and hand themselves a
+ * Only a ClubBase owner adds a campus. Nobody can sign up and hand themselves a
  * school any more — that was the same thing as handing yourself an admin
  * account.
  */
@@ -1101,7 +1101,7 @@ export async function requestAdmin(input: SchoolSetupInput & { message: string }
 
   return transaction((db) => {
     if (db.schools.some((school) => norm(school.name) === norm(input.name)))
-      return fail("That school is already on ClubHub. New applications must be for a new school.");
+      return fail("That school is already on ClubBase. New applications must be for a new school.");
     if (
       db.adminRequests.some(
         (request) => request.status === "pending" && norm(request.schoolName) === norm(input.name),
@@ -1109,7 +1109,7 @@ export async function requestAdmin(input: SchoolSetupInput & { message: string }
     )
       return fail("An application for that school is already waiting for review.");
     if (db.adminRequests.some((r) => r.userId === user.id && r.status === "pending"))
-      return fail("You already have a request waiting on a ClubHub owner.");
+      return fail("You already have a request waiting on a ClubBase owner.");
 
     db.adminRequests.push({
       id: newId("adm"),

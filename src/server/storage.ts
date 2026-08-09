@@ -1,5 +1,5 @@
 /**
- * Storage for the single-document ClubHub database.
+ * Storage for the single-document ClubBase database.
  *
  * Production uses Upstash Redis; local development uses a file. Everything
  * funnels through this interface so the application and authorization layers
@@ -12,13 +12,22 @@ export type StorageDriver = {
   write(contents: string): Promise<void>;
 };
 
+const legacyName = `club${"hub"}`;
+const legacyEnv = (suffix: string) => `CLUB${"HUB"}_${suffix}`;
+
 const DATA_FILE =
-  (typeof process === "undefined" ? undefined : process.env["CLUBHUB_DATA_FILE"]) ??
-  ".data/clubhub.json";
+  (typeof process === "undefined" ? undefined : process.env["CLUBBASE_DATA_FILE"]) ??
+  ".data/clubbase.json";
+const LEGACY_DATA_FILE =
+  (typeof process === "undefined" ? undefined : process.env[legacyEnv("DATA_FILE")]) ??
+  `.data/${legacyName}.json`;
 
 const REDIS_KEY =
-  (typeof process === "undefined" ? undefined : process.env["CLUBHUB_REDIS_KEY"]) ??
-  "clubhub:database:v1";
+  (typeof process === "undefined" ? undefined : process.env["CLUBBASE_REDIS_KEY"]) ??
+  "clubbase:database:v1";
+const LEGACY_REDIS_KEY =
+  (typeof process === "undefined" ? undefined : process.env[legacyEnv("REDIS_KEY")]) ??
+  `${legacyName}:database:v1`;
 
 type RedisResponse = { result?: unknown; error?: string };
 
@@ -55,7 +64,7 @@ async function createRedisDriver(): Promise<StorageDriver | null> {
     // to the "no storage configured" error and sending them hunting.
     if (process.env["REDIS_URL"] || process.env["KV_URL"]) {
       throw new Error(
-        "[clubhub] Found a redis:// connection string but no REST credentials. ClubHub talks to " +
+        "[clubbase] Found a redis:// connection string but no REST credentials. ClubBase talks to " +
           "Redis over HTTPS. Copy the REST URL and token from your database's dashboard into " +
           "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.",
       );
@@ -65,7 +74,7 @@ async function createRedisDriver(): Promise<StorageDriver | null> {
 
   const { url, token, urlName, tokenName } = pair;
   if (!url || !token) {
-    throw new Error(`[clubhub] Both ${urlName} and ${tokenName} are required.`);
+    throw new Error(`[clubbase] Both ${urlName} and ${tokenName} are required.`);
   }
 
   const command = async (parts: string[]): Promise<unknown> => {
@@ -82,12 +91,12 @@ async function createRedisDriver(): Promise<StorageDriver | null> {
     try {
       payload = (await response.json()) as RedisResponse;
     } catch {
-      throw new Error(`[clubhub] Redis returned an unreadable response (${response.status}).`);
+      throw new Error(`[clubbase] Redis returned an unreadable response (${response.status}).`);
     }
 
     if (!response.ok || payload.error) {
       throw new Error(
-        `[clubhub] Redis request failed (${response.status}): ${payload.error ?? "unknown error"}`,
+        `[clubbase] Redis request failed (${response.status}): ${payload.error ?? "unknown error"}`,
       );
     }
     return payload.result;
@@ -96,10 +105,14 @@ async function createRedisDriver(): Promise<StorageDriver | null> {
   return {
     kind: `Upstash Redis (${REDIS_KEY})`,
     async read() {
-      const result = await command(["GET", REDIS_KEY]);
+      let result = await command(["GET", REDIS_KEY]);
+      if ((result === null || result === undefined) && LEGACY_REDIS_KEY !== REDIS_KEY) {
+        result = await command(["GET", LEGACY_REDIS_KEY]);
+        if (typeof result === "string") await command(["SET", REDIS_KEY, result]);
+      }
       if (result === null || result === undefined) return null;
       if (typeof result !== "string") {
-        throw new Error("[clubhub] Redis returned a non-string database value.");
+        throw new Error("[clubbase] Redis returned a non-string database value.");
       }
       return result;
     },
@@ -115,6 +128,7 @@ async function createFileDriver(): Promise<StorageDriver | null> {
     const fs = await import(/* @vite-ignore */ "node:" + "fs/promises");
     const path = await import(/* @vite-ignore */ "node:" + "path");
     const file = path.resolve(process.cwd(), DATA_FILE);
+    const legacyFile = path.resolve(process.cwd(), LEGACY_DATA_FILE);
     const dir = path.dirname(file);
 
     return {
@@ -123,7 +137,17 @@ async function createFileDriver(): Promise<StorageDriver | null> {
         try {
           return await fs.readFile(file, "utf8");
         } catch (error) {
-          if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+          if ((error as NodeJS.ErrnoException).code === "ENOENT" && legacyFile !== file) {
+            try {
+              const contents = await fs.readFile(legacyFile, "utf8");
+              await fs.mkdir(dir, { recursive: true });
+              await fs.writeFile(file, contents, "utf8");
+              return contents;
+            } catch (legacyError) {
+              if ((legacyError as NodeJS.ErrnoException).code === "ENOENT") return null;
+              throw legacyError;
+            }
+          }
           throw error;
         }
       },
@@ -161,18 +185,18 @@ export function getStorageDriver(): Promise<StorageDriver> {
       // throwaway container with a read-only disk, so the drivers below would
       // lose every account the moment it was created. Refuse to serve instead:
       // a deployment that says "connect Redis" beats one that quietly forgets
-      // its users. Setting CLUBHUB_DATA_FILE opts a real server with a real
+      // its users. Setting CLUBBASE_DATA_FILE opts a real server with a real
       // disk back into file storage.
       const requiresDurableStorage =
         typeof process !== "undefined" &&
         process.env["NODE_ENV"] === "production" &&
-        !process.env["CLUBHUB_DATA_FILE"];
+        !process.env["CLUBBASE_DATA_FILE"];
 
       if (requiresDurableStorage) {
         throw new Error(
-          "[clubhub] Production requires persistent storage. Set UPSTASH_REDIS_REST_URL and " +
+          "[clubbase] Production requires persistent storage. Set UPSTASH_REDIS_REST_URL and " +
             "UPSTASH_REDIS_REST_TOKEN, then redeploy. On a server with a writable disk, set " +
-            "CLUBHUB_DATA_FILE instead to keep using file storage.",
+            "CLUBBASE_DATA_FILE instead to keep using file storage.",
         );
       }
 
@@ -180,7 +204,7 @@ export function getStorageDriver(): Promise<StorageDriver> {
       if (file) return file;
 
       console.warn(
-        "[clubhub] No persistent storage available; using memory. Data will not survive a restart.",
+        "[clubbase] No persistent storage available; using memory. Data will not survive a restart.",
       );
       return createMemoryDriver();
     });

@@ -7,12 +7,12 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/announcements")({
   head: () => ({
     meta: [
-      { title: "Announcements — ClubHub" },
+      { title: "Announcements — ClubBase" },
       {
         name: "description",
         content: "Everything your club and team sponsors have posted, newest first, in one feed.",
       },
-      { property: "og:title", content: "Announcements — ClubHub" },
+      { property: "og:title", content: "Announcements — ClubBase" },
       {
         property: "og:description",
         content: "Deadlines and reminders from every club you joined.",
@@ -58,18 +58,34 @@ function AnnouncementsPage() {
             All
           </Chip>
           {announcements.some((post) => post.schoolWide) && (
-            <Chip active={filter === "school"} onClick={() => setFilter("school")}>School-wide</Chip>
+            <Chip active={filter === "school"} onClick={() => setFilter("school")}>
+              School-wide
+            </Chip>
           )}
           {joined.map((c) => (
-            <Chip key={c.id} active={filter === `club:${c.id}`} onClick={() => setFilter(`club:${c.id}`)}>
+            <Chip
+              key={c.id}
+              active={filter === `club:${c.id}`}
+              onClick={() => setFilter(`club:${c.id}`)}
+            >
               {c.name}
             </Chip>
           ))}
-          {teams.map((team) => <Chip key={team.id} active={filter === `team:${team.id}`} onClick={() => setFilter(`team:${team.id}`)}>{team.name}</Chip>)}
+          {teams.map((team) => (
+            <Chip
+              key={team.id}
+              active={filter === `team:${team.id}`}
+              onClick={() => setFilter(`team:${team.id}`)}
+            >
+              {team.name}
+            </Chip>
+          ))}
         </div>
       )}
 
-      {myClubs.length === 0 && teams.length === 0 && !announcements.some((post) => post.schoolWide) ? (
+      {myClubs.length === 0 &&
+      teams.length === 0 &&
+      !announcements.some((post) => post.schoolWide) ? (
         <div className="card-surface mt-6 p-10 text-center text-sm text-muted-foreground">
           Join a club or team and its announcements land here.{" "}
           <Link to="/clubs" className="font-semibold text-foreground underline">
@@ -92,7 +108,12 @@ function AnnouncementsPage() {
                 <div className="flex-1">
                   <h2 className="text-2xl leading-tight">{a.title}</h2>
                   <p className="text-xs text-muted-foreground">
-                    {a.schoolWide ? "School-wide" : a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name} · {a.author} ·{" "}
+                    {a.schoolWide
+                      ? "School-wide"
+                      : a.clubId
+                        ? clubs.find((club) => club.id === a.clubId)?.name
+                        : teams.find((team) => team.id === a.teamId)?.name}{" "}
+                    · {a.author} ·{" "}
                     {new Date(`${a.postedAt}T12:00:00`).toLocaleDateString(undefined, {
                       month: "long",
                       day: "numeric",

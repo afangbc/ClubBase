@@ -9,13 +9,13 @@ import { campusRooms, staffClubs } from "@/lib/staff";
 export const Route = createFileRoute("/manage/events")({
   head: () => ({
     meta: [
-      { title: "Meetings / Events — ClubHub Staff" },
+      { title: "Meetings / Events — ClubBase Staff" },
       {
         name: "description",
         content:
           "Post and cancel meetings or events for the clubs and teams you sponsor. Members see them instantly.",
       },
-      { property: "og:title", content: "Meetings / Events — ClubHub Staff" },
+      { property: "og:title", content: "Meetings / Events — ClubBase Staff" },
       {
         property: "og:description",
         content: "Schedule club and team events straight to student calendars.",
@@ -49,7 +49,9 @@ export function Meetings() {
   const target = targets.some((item) => item.value === picked) ? picked : (targets[0]?.value ?? "");
   const [kind, targetId] = target.split(":");
   const list = events
-    .filter((event) => (event.clubId ? ids.includes(event.clubId) : !!event.teamId && teamIds.includes(event.teamId)))
+    .filter((event) =>
+      event.clubId ? ids.includes(event.clubId) : !!event.teamId && teamIds.includes(event.teamId),
+    )
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (targets.length === 0) return <NoClubs />;
@@ -92,12 +94,7 @@ export function Meetings() {
             }
           }}
         >
-          <SelectField
-            label="Club or team"
-            value={target}
-            onChange={setPicked}
-            options={targets}
-          />
+          <SelectField label="Club or team" value={target} onChange={setPicked} options={targets} />
           <TextField
             label="Title"
             value={title}
@@ -152,8 +149,10 @@ export function Meetings() {
               <div className="flex-1">
                 <p className="text-sm font-semibold">{e.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {(e.clubId ? clubs.find((club) => club.id === e.clubId)?.name : teams.find((team) => team.id === e.teamId)?.name)} · {formatTime(e.start)}–
-                  {formatTime(e.end)} · {e.location}
+                  {e.clubId
+                    ? clubs.find((club) => club.id === e.clubId)?.name
+                    : teams.find((team) => team.id === e.teamId)?.name}{" "}
+                  · {formatTime(e.start)}–{formatTime(e.end)} · {e.location}
                 </p>
               </div>
               <button

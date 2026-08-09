@@ -2,20 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Building2, CalendarDays, Copy, Palette, RefreshCw, UserCog, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { TextField } from "@/components/form-fields";
-import { CLUBHUB_COLORS } from "@/lib/campus-data";
+import { CLUBBASE_COLORS } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Campus Console — ClubHub Admin" },
+      { title: "Campus Console — ClubBase Admin" },
       {
         name: "description",
         content:
           "Issue the campus access code, review every club, and approve staff accounts for your school.",
       },
-      { property: "og:title", content: "Campus Console — ClubHub Admin" },
-      { property: "og:description", content: "Run ClubHub for your whole campus." },
+      { property: "og:title", content: "Campus Console — ClubBase Admin" },
+      { property: "og:description", content: "Run ClubBase for your whole campus." },
     ],
   }),
   component: AdminHome,
@@ -211,9 +211,9 @@ function SchoolBranding() {
   const [secondaryColor, setSecondaryColor] = useState(school?.secondaryColor ?? "#facc15");
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-  const usingClubHubColors =
-    primaryColor.toLowerCase() === CLUBHUB_COLORS.primaryColor &&
-    secondaryColor.toLowerCase() === CLUBHUB_COLORS.secondaryColor;
+  const usingClubBaseColors =
+    primaryColor.toLowerCase() === CLUBBASE_COLORS.primaryColor &&
+    secondaryColor.toLowerCase() === CLUBBASE_COLORS.secondaryColor;
 
   useEffect(() => {
     if (!school) return;
@@ -233,7 +233,7 @@ function SchoolBranding() {
     setMessage(
       error
         ? { ok: false, text: error }
-        : { ok: true, text: preset ? "ClubHub colors applied." : "School colors saved." },
+        : { ok: true, text: preset ? "ClubBase colors applied." : "School colors saved." },
     );
   };
 
@@ -241,7 +241,7 @@ function SchoolBranding() {
     <section className="card-surface mt-6 p-5">
       <h2 className="text-2xl leading-tight">School colors</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        These colors appear throughout ClubHub for everyone enrolled at {school.name}.
+        These colors appear throughout ClubBase for everyone enrolled at {school.name}.
       </p>
       <form
         className="mt-4 flex flex-wrap items-end gap-4"
@@ -268,12 +268,12 @@ function SchoolBranding() {
         </button>
         <button
           type="button"
-          disabled={busy || usingClubHubColors}
-          onClick={() => void saveColors({ ...CLUBHUB_COLORS }, true)}
+          disabled={busy || usingClubBaseColors}
+          onClick={() => void saveColors({ ...CLUBBASE_COLORS }, true)}
           className="flex items-center gap-2 rounded-md border border-input bg-card px-4 py-2 text-sm font-semibold transition-colors hover:bg-accent disabled:cursor-default disabled:opacity-60"
         >
           <Palette className="size-4 text-brand" />
-          {usingClubHubColors ? "Using ClubHub colors" : "Use ClubHub colors"}
+          {usingClubBaseColors ? "Using ClubBase colors" : "Use ClubBase colors"}
         </button>
       </form>
       {message && (

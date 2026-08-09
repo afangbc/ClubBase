@@ -7,12 +7,12 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/pending")({
   head: () => ({
     meta: [
-      { title: "Waiting on approval — ClubHub" },
+      { title: "Waiting on approval — ClubBase" },
       {
         name: "description",
         content: "Your staff account is waiting for a school admin to approve it.",
       },
-      { property: "og:title", content: "Waiting on approval — ClubHub" },
+      { property: "og:title", content: "Waiting on approval — ClubBase" },
       { property: "og:description", content: "A school admin reviews every staff account." },
     ],
   }),

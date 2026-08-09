@@ -10,13 +10,13 @@ import { campusRooms, staffClubs } from "@/lib/staff";
 export const Route = createFileRoute("/manage/")({
   head: () => ({
     meta: [
-      { title: "Sponsor Console — ClubHub Staff" },
+      { title: "Sponsor Console — ClubBase Staff" },
       {
         name: "description",
         content:
-          "The ClubHub console for club sponsors: create clubs, manage rosters, post meetings, and send announcements.",
+          "The ClubBase console for club sponsors: create clubs, manage rosters, post meetings, and send announcements.",
       },
-      { property: "og:title", content: "Sponsor Console — ClubHub Staff" },
+      { property: "og:title", content: "Sponsor Console — ClubBase Staff" },
       { property: "og:description", content: "Create a club, approve members, and post meetings." },
     ],
   }),

@@ -11,7 +11,7 @@ export const DEMO_PASSWORD = "raccoons26";
 
 /**
  * Students are active the moment they enter a campus code. Staff wait: teachers
- * on their school admin, admins on a ClubHub owner.
+ * on their school admin, admins on a ClubBase owner.
  */
 export type AccountStatus = "active" | "pending" | "denied";
 
@@ -22,8 +22,8 @@ export const CATEGORIES: ClubCategory[] = ["Academic", "STEM", "Service", "Arts"
 export const GRADES = ["9th", "10th", "11th", "12th"] as const;
 export type Grade = (typeof GRADES)[number];
 
-/** ClubHub's campus-neutral house palette, available as an admin branding preset. */
-export const CLUBHUB_COLORS = {
+/** ClubBase's campus-neutral house palette, available as an admin branding preset. */
+export const CLUBBASE_COLORS = {
   primaryColor: "#243b80",
   secondaryColor: "#2dd4bf",
 } as const;
@@ -40,7 +40,7 @@ export type Session = {
   /** Null until the account enters the campus access code. */
   schoolId: string | null;
   /**
-   * True for the people who run ClubHub itself. Derived on the server from an
+   * True for the people who run ClubBase itself. Derived on the server from an
    * environment allowlist, never from anything stored or submitted, so no
    * sign-up path can hand it to itself.
    */
@@ -290,7 +290,7 @@ export type SchoolDetail = SchoolSummary & {
 export type AdminRequestStatus = "pending" | "approved" | "denied";
 
 /**
- * Somebody asking to run a campus. Only a ClubHub owner can approve one — that
+ * Somebody asking to run a campus. Only a ClubBase owner can approve one — that
  * is the whole point of the queue.
  */
 export type AdminRequest = {
@@ -367,7 +367,7 @@ export function schoolInitials(name: string | undefined): string {
     .join("");
 }
 
-/** School-issued email is required, but ClubHub supports many districts. */
+/** School-issued email is required, but ClubBase supports many districts. */
 export function emailProblem(email: string, role: Role): string | null {
   const value = email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Enter your full school email address.";
@@ -395,7 +395,7 @@ export function passwordProblem(password: string): string | null {
 /**
  * Where a signed-in account belongs. No two roles share a landing page, and
  * both kinds of staff wait on someone before they get one at all: a teacher on
- * their school admin, an admin on a ClubHub owner.
+ * their school admin, an admin on a ClubBase owner.
  */
 export function homeFor(
   session: Session | null,

@@ -5,7 +5,7 @@
 # handler to .netlify/functions-internal/server/, which Netlify picks up
 # automatically — every route except the static assets is served by it.
 #
-# ClubHub also needs the environment variables listed in .env.example set in
+# ClubBase also needs the environment variables listed in .env.example set in
 # Site configuration → Environment variables. Upstash Redis is required:
 # function instances have no writable disk and are recycled constantly, so
 # without it there is nowhere to keep accounts, clubs, or sessions.

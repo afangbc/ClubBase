@@ -12,12 +12,12 @@ dist
 dist-ssr
 .output
 
-# Local secrets — CLUBHUB_OWNER_EMAILS lives here. .env.example is committed.
+# Local secrets — CLUBBASE_OWNER_EMAILS lives here. .env.example is committed.
 .env
 .env.*
 !.env.example
 
-# ClubHub database (created on first run)
+# ClubBase database (created on first run)
 .data/
 .vinxi
 .tanstack/**

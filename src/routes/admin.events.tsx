@@ -3,7 +3,7 @@ import { Meetings } from "./manage.events";
 
 export const Route = createFileRoute("/admin/events")({
   head: () => ({
-    meta: [{ title: "Meetings / Events — ClubHub Admin" }],
+    meta: [{ title: "Meetings / Events — ClubBase Admin" }],
   }),
   component: Meetings,
 });

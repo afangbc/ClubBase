@@ -8,13 +8,13 @@ import { staffClubs } from "@/lib/staff";
 export const Route = createFileRoute("/manage/announcements")({
   head: () => ({
     meta: [
-      { title: "Announcements — ClubHub Staff" },
+      { title: "Announcements — ClubBase Staff" },
       {
         name: "description",
         content:
           "Send an announcement to everyone in the clubs you sponsor — deadlines, room changes, and reminders.",
       },
-      { property: "og:title", content: "Announcements — ClubHub Staff" },
+      { property: "og:title", content: "Announcements — ClubBase Staff" },
       { property: "og:description", content: "Message every member of your club at once." },
     ],
   }),
@@ -22,7 +22,8 @@ export const Route = createFileRoute("/manage/announcements")({
 });
 
 export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: boolean }) {
-  const { session, clubs, teams, announcements, addAnnouncement, removeAnnouncement } = useSession();
+  const { session, clubs, teams, announcements, addAnnouncement, removeAnnouncement } =
+    useSession();
   const mine = session ? staffClubs(clubs, session) : [];
   const ids = mine.map((c) => c.id);
   const teamIds = teams.map((team) => team.id);
@@ -42,7 +43,11 @@ export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: b
   const target = targets.some((item) => item.value === picked) ? picked : (targets[0]?.value ?? "");
   const [kind, targetId] = target.split(":");
   const posted = announcements.filter((post) =>
-    post.schoolWide ? allowSchoolWide : post.clubId ? ids.includes(post.clubId) : !!post.teamId && teamIds.includes(post.teamId),
+    post.schoolWide
+      ? allowSchoolWide
+      : post.clubId
+        ? ids.includes(post.clubId)
+        : !!post.teamId && teamIds.includes(post.teamId),
   );
 
   if (targets.length === 0) return <NoClubs />;
@@ -76,7 +81,12 @@ export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: b
             });
             setBusy(false);
             setError(problem ?? "");
-            const targetName = kind === "school" ? "the entire school" : kind === "club" ? clubs.find((club) => club.id === targetId)?.name : teams.find((team) => team.id === targetId)?.name;
+            const targetName =
+              kind === "school"
+                ? "the entire school"
+                : kind === "club"
+                  ? clubs.find((club) => club.id === targetId)?.name
+                  : teams.find((team) => team.id === targetId)?.name;
             setOk(problem ? "" : `Sent to ${targetName}.`);
             if (!problem) {
               setTitle("");
@@ -84,12 +94,7 @@ export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: b
             }
           }}
         >
-          <SelectField
-            label="Audience"
-            value={target}
-            onChange={setPicked}
-            options={targets}
-          />
+          <SelectField label="Audience" value={target} onChange={setPicked} options={targets} />
           <TextField
             label="Headline"
             value={title}
@@ -123,7 +128,12 @@ export function Announcements({ allowSchoolWide = false }: { allowSchoolWide?: b
               <div className="flex-1">
                 <p className="text-sm font-semibold">{a.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {a.schoolWide ? "Entire school" : a.clubId ? clubs.find((club) => club.id === a.clubId)?.name : teams.find((team) => team.id === a.teamId)?.name} ·{" "}
+                  {a.schoolWide
+                    ? "Entire school"
+                    : a.clubId
+                      ? clubs.find((club) => club.id === a.clubId)?.name
+                      : teams.find((team) => team.id === a.teamId)?.name}{" "}
+                  ·{" "}
                   {new Date(`${a.postedAt}T12:00:00`).toLocaleDateString(undefined, {
                     month: "short",
                     day: "numeric",

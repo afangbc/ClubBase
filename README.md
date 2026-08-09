@@ -159,7 +159,7 @@ cp .env.example .env
 Set your owner email:
 
 ```env
-ClubBase_OWNER_EMAILS=your@email.com
+CLUBBASE_OWNER_EMAILS=your@email.com
 ```
 
 Install dependencies:
@@ -202,7 +202,7 @@ ClubBase stores its database as a single JSON document.
 ## Local Development
 
 ```
-.data/ClubBase.json
+.data/clubbase.json
 ```
 
 ## Production
@@ -215,14 +215,14 @@ The storage layer is implemented in:
 src/server/storage.ts
 ```
 
-Delete `.data/ClubBase.json` to reset to the populated Frisco High School demo.
+Delete `.data/clubbase.json` to reset to the populated Frisco High School demo.
 The seeded accounts below all use the password `raccoons26`:
 
-| Role | Email |
-| --- | --- |
-| Student | `student@demo.ClubBase.app` |
-| Teacher | `teacher@demo.ClubBase.app` |
-| School admin | `admin@demo.ClubBase.app` |
+| Role         | Email                       |
+| ------------ | --------------------------- |
+| Student      | `student@demo.clubbase.app` |
+| Teacher      | `teacher@demo.clubbase.app` |
+| School admin | `admin@demo.clubbase.app`   |
 
 Upgrading an empty version-4 database restores this demo automatically. A
 database containing real users or clubs is never replaced with sample data.
@@ -337,7 +337,7 @@ Can:
 Configured through:
 
 ```env
-ClubBase_OWNER_EMAILS
+CLUBBASE_OWNER_EMAILS
 ```
 
 Can:
@@ -355,7 +355,7 @@ Owner accounts are never stored in the database.
 1. Add your email to:
 
 ```env
-ClubBase_OWNER_EMAILS
+CLUBBASE_OWNER_EMAILS
 ```
 
 2. Restart the server.
@@ -376,7 +376,7 @@ ClubBase_OWNER_EMAILS
 To add multiple ClubBase approvers, separate their addresses with commas:
 
 ```env
-ClubBase_OWNER_EMAILS=owner1@district.org,owner2@district.org
+CLUBBASE_OWNER_EMAILS=owner1@district.org,owner2@district.org
 ```
 
 ---
@@ -395,23 +395,23 @@ UPSTASH_REDIS_REST_URL
 
 UPSTASH_REDIS_REST_TOKEN
 
-ClubBase_OWNER_EMAILS
+CLUBBASE_OWNER_EMAILS
 
 RESEND_API_KEY
 
-ClubBase_FROM_EMAIL
+CLUBBASE_FROM_EMAIL
 ```
 
 Optional:
 
 ```
-ClubBase_REDIS_KEY
+CLUBBASE_REDIS_KEY
 ```
 
 Upstash Redis is not optional in production. Serverless functions get a
 read-only disk and are recycled between requests, so the local file driver has
 nowhere to write; the server refuses to start without Redis rather than lose
-accounts silently. Set `ClubBase_DATA_FILE` to opt back into file storage only
+accounts silently. Set `CLUBBASE_DATA_FILE` to opt back into file storage only
 when deploying to a real server with a persistent disk.
 
 ## Netlify

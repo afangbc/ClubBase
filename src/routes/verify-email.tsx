@@ -7,12 +7,13 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/verify-email")({
   head: () => ({
     meta: [
-      { title: "Confirm your email — ClubHub" },
+      { title: "Confirm your email — ClubBase" },
       {
         name: "description",
-        content: "Enter the six-digit code we emailed you to finish setting up your ClubHub account.",
+        content:
+          "Enter the six-digit code we emailed you to finish setting up your ClubBase account.",
       },
-      { property: "og:title", content: "Confirm your email — ClubHub" },
+      { property: "og:title", content: "Confirm your email — ClubBase" },
       { property: "og:description", content: "One code stands between you and your campus." },
     ],
   }),

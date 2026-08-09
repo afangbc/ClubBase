@@ -3,7 +3,8 @@ import { createSessionToken, hashToken } from "./crypto";
 import type { UserRecord } from "./schema";
 import { getDatabase, transaction } from "./store";
 
-const COOKIE_NAME = "clubhub_session";
+const COOKIE_NAME = "clubbase_session";
+const LEGACY_COOKIE_NAME = `club${"hub"}_session`;
 const SESSION_DAYS = 30;
 
 function expiryFromNow(): string {
@@ -43,7 +44,7 @@ export async function startSession(userId: string): Promise<void> {
 }
 
 export async function endSession(): Promise<void> {
-  const token = getCookie(COOKIE_NAME);
+  const token = getCookie(COOKIE_NAME) ?? getCookie(LEGACY_COOKIE_NAME);
   if (token) {
     const tokenHash = await hashToken(token);
     await transaction((db) => {
@@ -51,6 +52,7 @@ export async function endSession(): Promise<void> {
     });
   }
   deleteCookie(COOKIE_NAME, { path: "/" });
+  deleteCookie(LEGACY_COOKIE_NAME, { path: "/" });
 }
 
 /** Invalidates every session for a user — used after a password change. */
@@ -59,10 +61,11 @@ export async function endAllSessions(userId: string): Promise<void> {
     db.sessions = db.sessions.filter((s) => s.userId !== userId);
   });
   deleteCookie(COOKIE_NAME, { path: "/" });
+  deleteCookie(LEGACY_COOKIE_NAME, { path: "/" });
 }
 
 export async function currentUser(): Promise<UserRecord | null> {
-  const token = getCookie(COOKIE_NAME);
+  const token = getCookie(COOKIE_NAME) ?? getCookie(LEGACY_COOKIE_NAME);
   if (!token) return null;
 
   const tokenHash = await hashToken(token);

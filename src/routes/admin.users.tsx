@@ -7,7 +7,7 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
-      { title: "All Users — ClubHub Admin" },
+      { title: "All Users — ClubBase Admin" },
       {
         name: "description",
         content: "View every student, teacher, and administrator enrolled at this school.",

@@ -46,7 +46,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
               {schoolInitials(school?.name)}
             </span>
             <span className="font-display text-3xl leading-none">
-              ClubHub <span className="text-brand">Admin</span>
+              ClubBase <span className="text-brand">Admin</span>
             </span>
           </Link>
           <span className="hidden text-xs uppercase tracking-widest opacity-70 sm:inline">

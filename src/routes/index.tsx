@@ -6,21 +6,21 @@ import { useSession } from "@/lib/session";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ClubHub — One club app for your whole campus" },
+      { title: "ClubBase — One club app for your whole campus" },
       {
         name: "description",
         content:
-          "ClubHub puts every school's clubs, teams, announcements, and events in one organized place.",
+          "ClubBase puts every school's clubs, teams, announcements, and events in one organized place.",
       },
-      { property: "og:title", content: "ClubHub — One club app for your whole campus" },
+      { property: "og:title", content: "ClubBase — One club app for your whole campus" },
       {
         property: "og:description",
         content: "Find clubs, join them, and see every meeting on one calendar.",
       },
-      { property: "og:site_name", content: "ClubHub" },
+      { property: "og:site_name", content: "ClubBase" },
       { property: "og:url", content: "https://club-hub-self.vercel.app/" },
       { name: "robots", content: "index, follow" },
-      { name: "twitter:title", content: "ClubHub — One club app for your whole campus" },
+      { name: "twitter:title", content: "ClubBase — One club app for your whole campus" },
       {
         name: "twitter:description",
         content: "Find clubs, join them, and see every meeting on one calendar.",
@@ -34,13 +34,13 @@ export const Route = createFileRoute("/")({
 const roles: { value: Role; label: string; hint: string }[] = [
   { value: "student", label: "Student", hint: "Join clubs & see your calendar" },
   { value: "teacher", label: "Teacher", hint: "Sponsor clubs and teams" },
-  { value: "admin", label: "School Admin", hint: "Request the campus from ClubHub" },
+  { value: "admin", label: "School Admin", hint: "Request the campus from ClubBase" },
 ];
 
 const demoLogins = [
-  { role: "Student", email: "student@demo.clubhub.app" },
-  { role: "Teacher", email: "teacher@demo.clubhub.app" },
-  { role: "Admin", email: "admin@demo.clubhub.app" },
+  { role: "Student", email: "student@demo.clubbase.app" },
+  { role: "Teacher", email: "teacher@demo.clubbase.app" },
+  { role: "Admin", email: "admin@demo.clubbase.app" },
 ];
 
 function Index() {
@@ -79,7 +79,7 @@ function Index() {
   // Never paint an auth step until the server has confirmed the session. After
   // sign-in, keep the short redirect frame neutral instead of flashing the
   // campus-code form for accounts that already belong to a school.
-  if (!ready || leavingIndex) return <OpeningClubHub />;
+  if (!ready || leavingIndex) return <OpeningClubBase />;
 
   const step: 1 | 2 = session ? 2 : 1;
   const placeholder = role === "student" ? "student@school.edu" : "first.last@district.org";
@@ -92,7 +92,7 @@ function Index() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            name: "ClubHub",
+            name: "ClubBase",
             url: "https://club-hub-self.vercel.app/",
             applicationCategory: "EducationalApplication",
             operatingSystem: "Web",
@@ -106,7 +106,7 @@ function Index() {
           <span className="flex size-10 items-center justify-center rounded-lg bg-brand pt-0.5 font-display text-[2rem] leading-none text-brand-foreground">
             C
           </span>
-          <span className="font-display text-4xl leading-none">ClubHub</span>
+          <span className="font-display text-4xl leading-none">ClubBase</span>
         </div>
         <div className="max-w-md py-14">
           <h1 className="text-5xl leading-[1.05] lg:text-6xl">
@@ -260,14 +260,14 @@ function Index() {
               )}
               {mode === "signup" && role === "admin" && (
                 <p className="rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground">
-                  Nobody gets an admin account by signing up. You'll ask ClubHub for a campus on the
-                  next screen, and we approve every one by hand.
+                  Nobody gets an admin account by signing up. You'll ask ClubBase for a campus on
+                  the next screen, and we approve every one by hand.
                 </p>
               )}
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Submit busy={busy}>{mode === "signup" ? "Create account" : "Continue"}</Submit>
               <p className="text-xs text-muted-foreground">
-                {mode === "signup" ? "Already have an account?" : "New to ClubHub?"}{" "}
+                {mode === "signup" ? "Already have an account?" : "New to ClubBase?"}{" "}
                 <button
                   type="button"
                   onClick={() => {
@@ -358,7 +358,7 @@ function Index() {
                 placeholder="ABCD-1234"
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Submit busy={busy}>Enter ClubHub</Submit>
+              <Submit busy={busy}>Enter ClubBase</Submit>
               <p className="rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground">
                 Your sponsor, coach, or front office has the current code. It changes when the
                 school rotates it.
@@ -371,20 +371,20 @@ function Index() {
   );
 }
 
-function OpeningClubHub() {
+function OpeningClubBase() {
   return (
     <div className="grid min-h-screen place-items-center bg-primary text-primary-foreground">
       <div
         className="flex flex-col items-center gap-5 text-center"
         role="status"
-        aria-label="Opening ClubHub"
+        aria-label="Opening ClubBase"
       >
         <div className="flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-lg bg-brand pt-0.5 font-display text-[2.2rem] leading-none text-brand-foreground shadow-lg">
             C
           </span>
           <div className="text-left">
-            <p className="font-display text-5xl leading-none">ClubHub</p>
+            <p className="font-display text-5xl leading-none">ClubBase</p>
             <p className="mt-1.5 text-sm font-bold uppercase tracking-[0.18em]">
               Opening your campus
             </p>

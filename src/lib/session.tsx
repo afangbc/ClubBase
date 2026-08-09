@@ -76,7 +76,7 @@ type State = {
   session: Session | null;
   /** True once the account has entered the campus access code. */
   joined: boolean;
-  /** True for the people who run ClubHub itself. */
+  /** True for the people who run ClubBase itself. */
   isOwner: boolean;
   /** False until the emailed code comes back; gates the whole app. */
   emailVerified: boolean;
@@ -220,7 +220,7 @@ const emptyState: AppState = {
   emailInConsoleMode: false,
 };
 
-export const stateQueryKey = ["clubhub", "state"] as const;
+export const stateQueryKey = ["clubbase", "state"] as const;
 
 /**
  * Tells a dead connection apart from a server that answered and then failed.

@@ -15,7 +15,7 @@ import { ThemeToggle } from "../components/ThemeToggle";
 
 const themeScript = `
 try {
-  var savedTheme = localStorage.getItem("clubhub.theme");
+  var savedTheme = localStorage.getItem("clubbase.theme");
   var useDark = savedTheme
     ? savedTheme === "dark"
     : window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -85,12 +85,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ClubHub — One club app for your whole campus" },
+      { title: "ClubBase — One club app for your whole campus" },
       {
         name: "description",
         content: "Find every club, team, and meeting at your school in one app.",
       },
-      { property: "og:title", content: "ClubHub" },
+      { property: "og:title", content: "ClubBase" },
       {
         property: "og:description",
         content: "Find every club, team, and meeting at your school in one app.",
