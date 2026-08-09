@@ -43,12 +43,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-secondary">
       <header className="sticky top-0 z-30 border-b border-border bg-primary text-primary-foreground">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4">
           <Link to="/clubs" className="flex items-center gap-2">
-            <span className="grid size-8 place-items-center rounded-md bg-brand text-center font-display text-xl leading-none text-brand-foreground">
+            <span className="grid size-10 place-items-center rounded-lg bg-brand text-center font-display text-2xl leading-none text-brand-foreground">
               {schoolInitials(school?.name)}
             </span>
-            <span className="font-display text-2xl leading-none">ClubHub</span>
+            <span className="font-display text-3xl leading-none">ClubHub</span>
           </Link>
           <span className="hidden text-xs uppercase tracking-widest opacity-70 sm:inline">
             {school?.name} · {school?.district}
@@ -93,9 +93,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               to={n.to}
               activeProps={{ className: "flow-nav-active text-brand" }}
               inactiveProps={{ className: "opacity-75" }}
-              className="flow-nav-tab flex items-center gap-2 px-3 py-2 text-sm font-semibold"
+              className="flow-nav-tab flex items-center gap-2 px-3.5 py-2.5 text-[15px] font-semibold"
             >
-              <n.icon className="size-4" />
+              <n.icon className="size-[18px]" />
               {n.label}
             </Link>
           ))}
