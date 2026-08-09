@@ -1,12 +1,12 @@
-# ClubHub
+# ClubBase
 
 https://club-hub-self.vercel.app
 
 > **One app to rule them all.**
 
-ClubHub is an all-in-one platform that allows schools to manage clubs, organizations, sports teams, and teacher tutorials in one centralized location.
+ClubBase is an all-in-one platform that allows schools to manage clubs, organizations, sports teams, and teacher tutorials in one centralized location.
 
-Instead of forcing students to juggle apps like GroupMe, Remind, SportsYou, WhatsApp, email, and school websites, ClubHub provides a single place for communication, calendars, announcements, and club discovery.
+Instead of forcing students to juggle apps like GroupMe, Remind, SportsYou, WhatsApp, email, and school websites, ClubBase provides a single place for communication, calendars, announcements, and club discovery.
 
 This project was originally created as a TSA project and is designed to scale from a single school into an entire district and eventually many schools.
 
@@ -16,7 +16,7 @@ This project was originally created as a TSA project and is designed to scale fr
 
 Many students struggle to participate in extracurricular activities because information is scattered across multiple platforms.
 
-ClubHub solves this by providing:
+ClubBase solves this by providing:
 
 - 📅 One calendar
 - 💬 One communication platform
@@ -64,7 +64,7 @@ The current version focuses on the minimum features needed to prove the idea bef
 
 ---
 
-## ClubHub Owner Features
+## ClubBase Owner Features
 
 - Create schools
 - Approve school administrators
@@ -159,7 +159,7 @@ cp .env.example .env
 Set your owner email:
 
 ```env
-CLUBHUB_OWNER_EMAILS=your@email.com
+ClubBase_OWNER_EMAILS=your@email.com
 ```
 
 Install dependencies:
@@ -197,12 +197,12 @@ Client code never directly controls permissions.
 
 # Data Storage
 
-ClubHub stores its database as a single JSON document.
+ClubBase stores its database as a single JSON document.
 
 ## Local Development
 
 ```
-.data/clubhub.json
+.data/ClubBase.json
 ```
 
 ## Production
@@ -215,14 +215,14 @@ The storage layer is implemented in:
 src/server/storage.ts
 ```
 
-Delete `.data/clubhub.json` to reset to the populated Frisco High School demo.
+Delete `.data/ClubBase.json` to reset to the populated Frisco High School demo.
 The seeded accounts below all use the password `raccoons26`:
 
 | Role | Email |
 | --- | --- |
-| Student | `student@demo.clubhub.app` |
-| Teacher | `teacher@demo.clubhub.app` |
-| School admin | `admin@demo.clubhub.app` |
+| Student | `student@demo.ClubBase.app` |
+| Teacher | `teacher@demo.ClubBase.app` |
+| School admin | `admin@demo.ClubBase.app` |
 
 Upgrading an empty version-4 database restores this demo automatically. A
 database containing real users or clubs is never replaced with sample data.
@@ -231,7 +231,7 @@ database containing real users or clubs is never replaced with sample data.
 
 # Authentication
 
-ClubHub uses secure authentication practices.
+ClubBase uses secure authentication practices.
 
 ### Passwords
 
@@ -287,7 +287,7 @@ Sign-in attempts are rate limited to:
 No user can assign themselves elevated permissions.
 
 ```
-ClubHub Owner
+ClubBase Owner
         │
         ▼
 School Admin
@@ -321,7 +321,7 @@ Can:
 
 ## School Admin
 
-Approved by a ClubHub Owner.
+Approved by a ClubBase Owner.
 
 Can:
 
@@ -332,12 +332,12 @@ Can:
 
 ---
 
-## ClubHub Owner
+## ClubBase Owner
 
 Configured through:
 
 ```env
-CLUBHUB_OWNER_EMAILS
+ClubBase_OWNER_EMAILS
 ```
 
 Can:
@@ -355,7 +355,7 @@ Owner accounts are never stored in the database.
 1. Add your email to:
 
 ```env
-CLUBHUB_OWNER_EMAILS
+ClubBase_OWNER_EMAILS
 ```
 
 2. Restart the server.
@@ -373,17 +373,17 @@ CLUBHUB_OWNER_EMAILS
 7. The approved admin shares the code with students and staff, approves teacher
    accounts, and manages only their own campus.
 
-To add multiple ClubHub approvers, separate their addresses with commas:
+To add multiple ClubBase approvers, separate their addresses with commas:
 
 ```env
-CLUBHUB_OWNER_EMAILS=owner1@district.org,owner2@district.org
+ClubBase_OWNER_EMAILS=owner1@district.org,owner2@district.org
 ```
 
 ---
 
 # Deployment
 
-ClubHub runs on **Vercel** or **Netlify**. `vite.config.ts` picks the matching
+ClubBase runs on **Vercel** or **Netlify**. `vite.config.ts` picks the matching
 Nitro preset from the variable the host sets during its build, so no manual
 switch is needed — but a build made for the wrong host deploys as static files
 with no server behind it, and every route 404s.
@@ -395,23 +395,23 @@ UPSTASH_REDIS_REST_URL
 
 UPSTASH_REDIS_REST_TOKEN
 
-CLUBHUB_OWNER_EMAILS
+ClubBase_OWNER_EMAILS
 
 RESEND_API_KEY
 
-CLUBHUB_FROM_EMAIL
+ClubBase_FROM_EMAIL
 ```
 
 Optional:
 
 ```
-CLUBHUB_REDIS_KEY
+ClubBase_REDIS_KEY
 ```
 
 Upstash Redis is not optional in production. Serverless functions get a
 read-only disk and are recycled between requests, so the local file driver has
 nowhere to write; the server refuses to start without Redis rather than lose
-accounts silently. Set `CLUBHUB_DATA_FILE` to opt back into file storage only
+accounts silently. Set `ClubBase_DATA_FILE` to opt back into file storage only
 when deploying to a real server with a persistent disk.
 
 ## Netlify
@@ -446,6 +446,6 @@ then fails at request time.
 
 # Project Philosophy
 
-ClubHub aims to become the **Gradeway for extracurricular activities**.
+ClubBase aims to become the **Gradeway for extracurricular activities**.
 
-Just as Gradeway centralizes grades and schedules, ClubHub centralizes everything related to student life outside the classroom, making it easier for students to discover opportunities, stay informed, and participate in their school community.
+Just as Gradeway centralizes grades and schedules, ClubBase centralizes everything related to student life outside the classroom, making it easier for students to discover opportunities, stay informed, and participate in their school community.
