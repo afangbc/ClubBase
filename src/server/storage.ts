@@ -23,20 +23,49 @@ const REDIS_KEY =
 type RedisResponse = { result?: unknown; error?: string };
 
 /**
- * Upstash exposes Redis over HTTPS, which works in Vercel Functions without a
- * long-lived TCP connection. The Vercel integration supplies these variables.
+ * The same REST credentials arrive under different names depending on how the
+ * database was provisioned — Upstash's own integration injects `UPSTASH_*`,
+ * while Vercel's Redis and KV marketplace entries inject `KV_REST_API_*`. Both
+ * speak the identical protocol, so accept either instead of making the operator
+ * hand-copy values into a second pair of variables.
+ */
+const REST_CREDENTIALS = [
+  ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+  ["KV_REST_API_URL", "KV_REST_API_TOKEN"],
+] as const;
+
+/**
+ * Upstash exposes Redis over HTTPS, which works in serverless functions without
+ * a long-lived TCP connection — unlike the `redis://` connection string the
+ * same integrations also publish, which needs a socket per instance.
  */
 async function createRedisDriver(): Promise<StorageDriver | null> {
   if (typeof process === "undefined") return null;
 
-  const url = process.env["UPSTASH_REDIS_REST_URL"]?.replace(/\/$/, "");
-  const token = process.env["UPSTASH_REDIS_REST_TOKEN"];
+  const pair = REST_CREDENTIALS.map(([urlName, tokenName]) => ({
+    urlName,
+    tokenName,
+    url: process.env[urlName]?.replace(/\/$/, ""),
+    token: process.env[tokenName],
+  })).find((candidate) => candidate.url || candidate.token);
 
-  if (!url && !token) return null;
+  if (!pair) {
+    // A TCP-only connection string means the database exists but the REST API
+    // this driver speaks was never exposed. Say so, rather than falling through
+    // to the "no storage configured" error and sending them hunting.
+    if (process.env["REDIS_URL"] || process.env["KV_URL"]) {
+      throw new Error(
+        "[clubhub] Found a redis:// connection string but no REST credentials. ClubHub talks to " +
+          "Redis over HTTPS. Copy the REST URL and token from your database's dashboard into " +
+          "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.",
+      );
+    }
+    return null;
+  }
+
+  const { url, token, urlName, tokenName } = pair;
   if (!url || !token) {
-    throw new Error(
-      "[clubhub] Both UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required.",
-    );
+    throw new Error(`[clubhub] Both ${urlName} and ${tokenName} are required.`);
   }
 
   const command = async (parts: string[]): Promise<unknown> => {
