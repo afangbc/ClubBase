@@ -1,6 +1,4 @@
-# ClubBase
-
-https://club-hub-self.vercel.app
+# **NOW FULLY AVAILABLE AT https://club-base.app ‼️‼️**
 
 > **One app to rule them all.**
 
