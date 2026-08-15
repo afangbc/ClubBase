@@ -222,6 +222,10 @@ The seeded accounts below all use the password `raccoons26`:
 | Teacher      | `teacher@demo.clubbase.app` |
 | School admin | `admin@demo.clubbase.app`   |
 
+Each successful demo sign-in receives a fresh, isolated copy of the demo campus.
+Changes never affect another visitor or a real school. The copy is deleted on
+sign-out and abandoned copies expire automatically after six hours.
+
 Upgrading an empty version-4 database restores this demo automatically. A
 database containing real users or clubs is never replaced with sample data.
 

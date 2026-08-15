@@ -21,6 +21,8 @@ export type SchoolRecord = {
   joinCode: string;
   primaryColor: string;
   secondaryColor: string;
+  /** Isolated demo campuses expire automatically and never appear to owners. */
+  demoExpiresAt?: string;
 };
 
 export type UserRecord = {
