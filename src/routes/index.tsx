@@ -76,10 +76,10 @@ function Index() {
       navigate({ to: destination, replace: true });
   }, [ready, leavingIndex, redirectDelayComplete, destination, navigate]);
 
-  // Never paint an auth step until the server has confirmed the session. After
-  // sign-in, keep the short redirect frame neutral instead of flashing the
-  // campus-code form for accounts that already belong to a school.
-  if (!ready || leavingIndex) return <OpeningClubBase />;
+  // An initial session check is not a campus transition: signed-out visitors
+  // should see the public page immediately. Only show the opening screen after
+  // the server has confirmed an account that is actually entering the app.
+  if (ready && leavingIndex) return <OpeningClubBase />;
 
   const step: 1 | 2 = session ? 2 : 1;
   const placeholder = role === "student" ? "student@school.edu" : "first.last@district.org";
