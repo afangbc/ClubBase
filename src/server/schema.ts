@@ -247,8 +247,8 @@ export async function buildSeedDatabase(): Promise<Database> {
         mascot: SCHOOL.mascot,
         district: SCHOOL.district,
         joinCode: SCHOOL.defaultJoinCode,
-        primaryColor: "#1d4ed8",
-        secondaryColor: "#facc15",
+        primaryColor: "#0033a0",
+        secondaryColor: "#ffd100",
       },
     ],
     users: [
