@@ -1,6 +1,7 @@
 import {
   CATEGORIES,
   GRADES,
+  SCHOOL,
   defaultPrefs,
   emailProblem,
   formatSchedule,
@@ -143,10 +144,11 @@ function removeExpiredDemoSchools(db: Database): void {
   );
 }
 
-async function createDemoUser(sourceEmail: string): Promise<string> {
+async function createDemoCampus(): Promise<{
+  schoolId: string;
+  userIdByEmail: Map<string, string>;
+}> {
   const template = await buildSeedDatabase();
-  const sourceUser = template.users.find((user) => norm(user.email) === sourceEmail);
-  if (!sourceUser) throw new Error("The requested demo account is missing from the demo template.");
 
   return transaction((db) => {
     removeExpiredDemoSchools(db);
@@ -267,8 +269,18 @@ async function createDemoUser(sourceEmail: string): Promise<string> {
       })),
     );
 
-    return userId(sourceUser.id);
+    return {
+      schoolId,
+      userIdByEmail: new Map(template.users.map((user) => [norm(user.email), userId(user.id)])),
+    };
   });
+}
+
+async function createDemoUser(sourceEmail: string): Promise<string> {
+  const demo = await createDemoCampus();
+  const userId = demo.userIdByEmail.get(sourceEmail);
+  if (!userId) throw new Error("The requested demo account is missing from the demo template.");
+  return userId;
 }
 
 export type AppState = {
@@ -885,14 +897,22 @@ export async function signUp(input: {
   if (passwordError) return fail(passwordError);
 
   const signupDb = await getDatabase();
+  if (signupDb.users.some((user) => norm(user.email) === norm(email)))
+    return fail("An account with that email already exists. Sign in instead.");
+
+  const needsSchool = (input.role === "student" || input.role === "teacher") && !privileged;
+  const isolatedDemoSignup = needsSchool && norm(input.schoolCode) === norm(SCHOOL.defaultJoinCode);
   const selectedSchool =
-    (input.role === "student" || input.role === "teacher") && !privileged
-      ? signupDb.schools.find((school) => norm(school.joinCode) === norm(input.schoolCode))
+    needsSchool && !isolatedDemoSignup
+      ? signupDb.schools.find(
+          (school) => !school.demoExpiresAt && norm(school.joinCode) === norm(input.schoolCode),
+        )
       : null;
-  if ((input.role === "student" || input.role === "teacher") && !privileged && !selectedSchool)
+  if (needsSchool && !isolatedDemoSignup && !selectedSchool)
     return fail("Enter the school code your school gave you.");
 
   const passwordHash = await hashPassword(input.password);
+  const demoSchoolId = isolatedDemoSignup ? (await createDemoCampus()).schoolId : null;
 
   const created = await transaction((db) => {
     if (db.users.some((u) => norm(u.email) === norm(email))) return null;
@@ -913,7 +933,9 @@ export async function signUp(input: {
       status: input.role === "student" || privileged ? "active" : "pending",
       passwordHash,
       emailVerified: false,
-      schoolId: bootstrap ? (defaultSchool?.id ?? null) : (selectedSchool?.id ?? null),
+      schoolId: bootstrap
+        ? (defaultSchool?.id ?? null)
+        : (demoSchoolId ?? selectedSchool?.id ?? null),
       ...(input.role === "student" && input.grade ? { grade: input.grade } : {}),
       prefs: { ...defaultPrefs },
       createdAt: new Date().toISOString(),
