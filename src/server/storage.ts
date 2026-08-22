@@ -31,35 +31,14 @@ const LEGACY_REDIS_KEY =
 
 type RedisResponse = { result?: unknown; error?: string };
 
-const databaseCollections = [
-  "schools",
-  "users",
-  "clubs",
-  "memberships",
-  "teams",
-  "teamMemberships",
-  "events",
-  "announcements",
-  "tutorialSchedules",
-] as const;
-
-/** Prefer the database that contains the most real records during a rename migration. */
-function databaseSize(contents: string | null): number {
-  if (!contents) return -1;
-
-  try {
-    const database = JSON.parse(contents) as Record<string, unknown>;
-    return databaseCollections.reduce((total, collection) => {
-      const records = database[collection];
-      return total + (Array.isArray(records) ? records.length : 0);
-    }, 0);
-  } catch {
-    return -1;
-  }
-}
-
+/**
+ * One-time migration: once the current key holds anything at all, it's the
+ * source of truth forever after — never re-compared against or overwritten
+ * by the legacy key on subsequent reads. Only an empty current key falls
+ * back to the legacy snapshot.
+ */
 function selectDatabase(current: string | null, legacy: string | null): string | null {
-  return databaseSize(legacy) > databaseSize(current) ? legacy : current;
+  return current ?? legacy;
 }
 
 function redisString(value: unknown): string | null {
