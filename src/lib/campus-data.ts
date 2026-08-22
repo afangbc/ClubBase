@@ -6,8 +6,8 @@
 
 export type Role = "student" | "teacher" | "admin";
 
-/** Password shared by seeded demo accounts only. */
-export const DEMO_PASSWORD = "raccoons26";
+/** Password shared by every seeded sample account. */
+export const SEED_PASSWORD = "raccoons26";
 
 /**
  * Students are active the moment they enter a campus code. Staff wait: teachers

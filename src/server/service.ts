@@ -1,7 +1,6 @@
 import {
   CATEGORIES,
   GRADES,
-  SCHOOL,
   defaultPrefs,
   emailProblem,
   formatSchedule,
@@ -40,7 +39,7 @@ import {
 import { hashPassword, hashToken, newId, verifyPassword } from "./crypto";
 import { emailInConsoleMode, sendVerificationCode } from "./email";
 import { isBootstrapAdmin, isOwner, ownersConfigured } from "./owners";
-import { buildSeedDatabase, FRISCO_SCHOOL_ID } from "./schema";
+import { FRISCO_SCHOOL_ID } from "./schema";
 import type { AdminRequestRecord, ClubRecord, Database, TeamRecord, UserRecord } from "./schema";
 import { getDatabase, transaction } from "./store";
 
@@ -54,234 +53,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 /** Deliberately vague so sign-in can't be used to enumerate real addresses. */
 const BAD_CREDENTIALS = "That email and password don't match an account.";
-const DEMO_EMAILS = new Set([
-  "student@demo.clubbase.app",
-  "teacher@demo.clubbase.app",
-  "admin@demo.clubbase.app",
-]);
-const DEMO_LIFETIME_MS = 6 * 60 * 60 * 1000;
-
-function removeSchools(db: Database, schoolIds: Set<string>): void {
-  if (schoolIds.size === 0) return;
-
-  const userIds = new Set(
-    db.users.filter((user) => user.schoolId && schoolIds.has(user.schoolId)).map((user) => user.id),
-  );
-  const clubIds = new Set(
-    db.clubs.filter((club) => schoolIds.has(club.schoolId)).map((club) => club.id),
-  );
-  const teamIds = new Set(
-    db.teams.filter((team) => schoolIds.has(team.schoolId)).map((team) => team.id),
-  );
-  const scheduleIds = new Set(
-    db.tutorialSchedules
-      .filter((schedule) => schoolIds.has(schedule.schoolId))
-      .map((schedule) => schedule.id),
-  );
-
-  db.schools = db.schools.filter((school) => !schoolIds.has(school.id));
-  db.users = db.users.filter((user) => !userIds.has(user.id));
-  db.clubs = db.clubs.filter((club) => !clubIds.has(club.id));
-  db.memberships = db.memberships.filter(
-    (membership) => !clubIds.has(membership.clubId) && !userIds.has(membership.userId),
-  );
-  db.teams = db.teams.filter((team) => !teamIds.has(team.id));
-  db.teamMemberships = db.teamMemberships.filter(
-    (membership) => !teamIds.has(membership.teamId) && !userIds.has(membership.userId),
-  );
-  const eventIds = new Set(
-    db.events
-      .filter(
-        (event) =>
-          (event.clubId && clubIds.has(event.clubId)) ||
-          (event.teamId && teamIds.has(event.teamId)),
-      )
-      .map((event) => event.id),
-  );
-  db.events = db.events.filter((event) => !eventIds.has(event.id));
-  db.eventRsvps = db.eventRsvps.filter(
-    (rsvp) => !eventIds.has(rsvp.eventId) && !userIds.has(rsvp.userId),
-  );
-  db.announcements = db.announcements.filter(
-    (announcement) =>
-      !(announcement.schoolId && schoolIds.has(announcement.schoolId)) &&
-      !(announcement.clubId && clubIds.has(announcement.clubId)) &&
-      !(announcement.teamId && teamIds.has(announcement.teamId)) &&
-      !userIds.has(announcement.authorId),
-  );
-  db.tutorialSchedules = db.tutorialSchedules.filter((schedule) => !scheduleIds.has(schedule.id));
-  db.tutorialCancellations = db.tutorialCancellations.filter(
-    (cancellation) => !scheduleIds.has(cancellation.scheduleId),
-  );
-  db.tutorialTeachers = db.tutorialTeachers.filter(
-    (selection) => !userIds.has(selection.studentId) && !userIds.has(selection.teacherId),
-  );
-  db.tutorialSignups = db.tutorialSignups.filter(
-    (signup) => !scheduleIds.has(signup.scheduleId) && !userIds.has(signup.studentId),
-  );
-  db.sessions = db.sessions.filter((session) => !userIds.has(session.userId));
-  db.adminRequests = db.adminRequests.filter(
-    (request) =>
-      !userIds.has(request.userId) && !(request.schoolId && schoolIds.has(request.schoolId)),
-  );
-  db.emailVerifications = db.emailVerifications.filter(
-    (verification) => !userIds.has(verification.userId),
-  );
-  db.schoolDepartures = db.schoolDepartures.filter(
-    (departure) => !userIds.has(departure.userId) && !schoolIds.has(departure.schoolId),
-  );
-}
-
-function removeExpiredDemoSchools(db: Database): void {
-  const now = Date.now();
-  removeSchools(
-    db,
-    new Set(
-      db.schools
-        .filter((school) => school.demoExpiresAt && Date.parse(school.demoExpiresAt) <= now)
-        .map((school) => school.id),
-    ),
-  );
-}
-
-async function createDemoCampus(): Promise<{
-  schoolId: string;
-  userIdByEmail: Map<string, string>;
-}> {
-  const template = await buildSeedDatabase();
-
-  return transaction((db) => {
-    removeExpiredDemoSchools(db);
-
-    const schoolId = newId("demo_school");
-    const expiresAt = new Date(Date.now() + DEMO_LIFETIME_MS).toISOString();
-    const userIds = new Map(template.users.map((user) => [user.id, newId("demo_user")]));
-    const clubIds = new Map(template.clubs.map((club) => [club.id, newId("demo_club")]));
-    const teamIds = new Map(template.teams.map((team) => [team.id, newId("demo_team")]));
-    const eventIds = new Map(template.events.map((event) => [event.id, newId("demo_event")]));
-    const scheduleIds = new Map(
-      template.tutorialSchedules.map((schedule) => [schedule.id, newId("demo_tutorial")]),
-    );
-    const userId = (id: string) => userIds.get(id)!;
-    const clubId = (id: string) => clubIds.get(id)!;
-    const teamId = (id: string) => teamIds.get(id)!;
-    const scheduleId = (id: string) => scheduleIds.get(id)!;
-
-    const school = template.schools.find((item) => item.id === FRISCO_SCHOOL_ID)!;
-    db.schools.push({
-      ...school,
-      id: schoolId,
-      joinCode: `DEMO-${schoolId.slice(-8).toUpperCase()}`,
-      demoExpiresAt: expiresAt,
-    });
-    db.users.push(
-      ...template.users.map((user) => ({
-        ...user,
-        id: userId(user.id),
-        schoolId,
-        prefs: { ...user.prefs },
-      })),
-    );
-    db.clubs.push(
-      ...template.clubs.map((club) => ({
-        ...club,
-        id: clubId(club.id),
-        schoolId,
-        sponsorId: userId(club.sponsorId),
-        schedule: { ...club.schedule },
-      })),
-    );
-    db.memberships.push(
-      ...template.memberships.map((membership) => ({
-        ...membership,
-        id: newId("demo_membership"),
-        clubId: clubId(membership.clubId),
-        userId: userId(membership.userId),
-      })),
-    );
-    db.teams.push(
-      ...template.teams.map((team) => ({
-        ...team,
-        id: teamId(team.id),
-        schoolId,
-        sponsorId: userId(team.sponsorId),
-        joinCode: `DEMO-${newId("team").slice(-8).toUpperCase()}`,
-      })),
-    );
-    db.teamMemberships.push(
-      ...template.teamMemberships.map((membership) => ({
-        ...membership,
-        id: newId("demo_team_member"),
-        teamId: teamId(membership.teamId),
-        userId: userId(membership.userId),
-      })),
-    );
-    db.events.push(
-      ...template.events.map((event) => ({
-        ...event,
-        id: eventIds.get(event.id)!,
-        ...(event.clubId ? { clubId: clubId(event.clubId) } : {}),
-        ...(event.teamId ? { teamId: teamId(event.teamId) } : {}),
-      })),
-    );
-    db.eventRsvps.push(
-      ...template.eventRsvps.map((rsvp) => ({
-        ...rsvp,
-        eventId: eventIds.get(rsvp.eventId)!,
-        userId: userId(rsvp.userId),
-      })),
-    );
-    db.announcements.push(
-      ...template.announcements.map((announcement) => ({
-        ...announcement,
-        id: newId("demo_announcement"),
-        ...(announcement.schoolId ? { schoolId } : {}),
-        ...(announcement.clubId ? { clubId: clubId(announcement.clubId) } : {}),
-        ...(announcement.teamId ? { teamId: teamId(announcement.teamId) } : {}),
-        authorId: userId(announcement.authorId),
-      })),
-    );
-    db.tutorialSchedules.push(
-      ...template.tutorialSchedules.map((schedule) => ({
-        ...schedule,
-        id: scheduleId(schedule.id),
-        schoolId,
-        teacherId: userId(schedule.teacherId),
-      })),
-    );
-    db.tutorialCancellations.push(
-      ...template.tutorialCancellations.map((item) => ({
-        ...item,
-        scheduleId: scheduleId(item.scheduleId),
-      })),
-    );
-    db.tutorialTeachers.push(
-      ...template.tutorialTeachers.map((item) => ({
-        studentId: userId(item.studentId),
-        teacherId: userId(item.teacherId),
-      })),
-    );
-    db.tutorialSignups.push(
-      ...template.tutorialSignups.map((item) => ({
-        ...item,
-        scheduleId: scheduleId(item.scheduleId),
-        studentId: userId(item.studentId),
-      })),
-    );
-
-    return {
-      schoolId,
-      userIdByEmail: new Map(template.users.map((user) => [norm(user.email), userId(user.id)])),
-    };
-  });
-}
-
-async function createDemoUser(sourceEmail: string): Promise<string> {
-  const demo = await createDemoCampus();
-  const userId = demo.userIdByEmail.get(sourceEmail);
-  if (!userId) throw new Error("The requested demo account is missing from the demo template.");
-  return userId;
-}
 
 export type AppState = {
   user: Session | null;
@@ -458,14 +229,6 @@ async function requireOwner(): Promise<
 export async function loadState(): Promise<AppState> {
   const db = await getDatabase();
 
-  if (
-    db.schools.some(
-      (school) => school.demoExpiresAt && Date.parse(school.demoExpiresAt) <= Date.now(),
-    )
-  ) {
-    await transaction(removeExpiredDemoSchools);
-  }
-
   const user = await currentUser();
 
   // Recovery copies are actual school data, so remove them durably as soon as
@@ -525,17 +288,15 @@ export async function loadState(): Promise<AppState> {
   if (isOwner(user.email)) {
     return {
       ...empty,
-      schools: db.schools
-        .filter((school) => !school.demoExpiresAt)
-        .map((school) => ({
-          ...toSchoolSummary(school),
-          joinCode: school.joinCode,
-          admins: db.users.filter(
-            (u) => u.schoolId === school.id && u.role === "admin" && u.status === "active",
-          ).length,
-          students: db.users.filter((u) => u.schoolId === school.id && u.role === "student").length,
-          clubs: db.clubs.filter((c) => c.schoolId === school.id).length,
-        })),
+      schools: db.schools.map((school) => ({
+        ...toSchoolSummary(school),
+        joinCode: school.joinCode,
+        admins: db.users.filter(
+          (u) => u.schoolId === school.id && u.role === "admin" && u.status === "active",
+        ).length,
+        students: db.users.filter((u) => u.schoolId === school.id && u.role === "student").length,
+        clubs: db.clubs.filter((c) => c.schoolId === school.id).length,
+      })),
       adminRequests: db.adminRequests
         .map((record) => toAdminRequest(db, record))
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -550,7 +311,7 @@ export async function loadState(): Promise<AppState> {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
     return {
       ...empty,
-      schoolOptions: db.schools.filter((school) => !school.demoExpiresAt).map(toSchoolSummary),
+      schoolOptions: db.schools.map(toSchoolSummary),
       myAdminRequest: mine ? toAdminRequest(db, mine) : null,
     };
   }
@@ -901,18 +662,12 @@ export async function signUp(input: {
     return fail("An account with that email already exists. Sign in instead.");
 
   const needsSchool = (input.role === "student" || input.role === "teacher") && !privileged;
-  const isolatedDemoSignup = needsSchool && norm(input.schoolCode) === norm(SCHOOL.defaultJoinCode);
-  const selectedSchool =
-    needsSchool && !isolatedDemoSignup
-      ? signupDb.schools.find(
-          (school) => !school.demoExpiresAt && norm(school.joinCode) === norm(input.schoolCode),
-        )
-      : null;
-  if (needsSchool && !isolatedDemoSignup && !selectedSchool)
-    return fail("Enter the school code your school gave you.");
+  const selectedSchool = needsSchool
+    ? signupDb.schools.find((school) => norm(school.joinCode) === norm(input.schoolCode))
+    : null;
+  if (needsSchool && !selectedSchool) return fail("Enter the school code your school gave you.");
 
   const passwordHash = await hashPassword(input.password);
-  const demoSchoolId = isolatedDemoSignup ? (await createDemoCampus()).schoolId : null;
 
   const created = await transaction((db) => {
     if (db.users.some((u) => norm(u.email) === norm(email))) return null;
@@ -933,9 +688,7 @@ export async function signUp(input: {
       status: input.role === "student" || privileged ? "active" : "pending",
       passwordHash,
       emailVerified: false,
-      schoolId: bootstrap
-        ? (defaultSchool?.id ?? null)
-        : (demoSchoolId ?? selectedSchool?.id ?? null),
+      schoolId: bootstrap ? (defaultSchool?.id ?? null) : (selectedSchool?.id ?? null),
       ...(input.role === "student" && input.grade ? { grade: input.grade } : {}),
       prefs: { ...defaultPrefs },
       createdAt: new Date().toISOString(),
@@ -1046,20 +799,12 @@ export async function signIn(input: { email: string; password: string }): Promis
   }
 
   clearFailures(key);
-  const sessionUserId = DEMO_EMAILS.has(key) ? await createDemoUser(key) : user.id;
-  await startSession(sessionUserId);
+  await startSession(user.id);
   return ok;
 }
 
 export async function signOut(): Promise<Result> {
-  const user = await currentUser();
-  const school = user?.schoolId
-    ? (await getDatabase()).schools.find((item) => item.id === user.schoolId)
-    : null;
   await endSession();
-  if (school?.demoExpiresAt) {
-    await transaction((db) => removeSchools(db, new Set([school.id])));
-  }
   return ok;
 }
 
@@ -1074,9 +819,7 @@ export async function joinSchool(input: { code: string }): Promise<Result> {
     return fail("Your account already belongs to a campus.");
 
   const db = await getDatabase();
-  const school = db.schools.find(
-    (candidate) => !candidate.demoExpiresAt && norm(candidate.joinCode) === norm(input.code),
-  );
+  const school = db.schools.find((candidate) => norm(candidate.joinCode) === norm(input.code));
   if (!school)
     return fail("That code doesn't match a campus. Ask your sponsor for the current one.");
 

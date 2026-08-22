@@ -1,5 +1,5 @@
 import {
-  DEMO_PASSWORD,
+  SEED_PASSWORD,
   SCHOOL,
   defaultPrefs,
   type AccountStatus,
@@ -21,8 +21,6 @@ export type SchoolRecord = {
   joinCode: string;
   primaryColor: string;
   secondaryColor: string;
-  /** Isolated demo campuses expire automatically and never appear to owners. */
-  demoExpiresAt?: string;
 };
 
 export type UserRecord = {
@@ -231,7 +229,7 @@ export const FRISCO_SCHOOL_ID = "sch-frisco-hs";
  * club list from there.
  */
 export async function buildSeedDatabase(): Promise<Database> {
-  const passwordHash = await hashPassword(DEMO_PASSWORD);
+  const passwordHash = await hashPassword(SEED_PASSWORD);
   const createdAt = new Date().toISOString();
   const day = (offset: number) => {
     const date = new Date();
@@ -255,7 +253,7 @@ export async function buildSeedDatabase(): Promise<Database> {
       {
         id: "u-nguyen",
         name: "Alicia Nguyen",
-        email: "admin@demo.clubbase.app",
+        email: `alicia.nguyen@${SCHOOL.staffDomain}`,
         role: "admin",
         status: "active",
         passwordHash,
@@ -268,7 +266,7 @@ export async function buildSeedDatabase(): Promise<Database> {
       {
         id: "u-alvarez",
         name: "Marcus Alvarez",
-        email: "teacher@demo.clubbase.app",
+        email: `marcus.alvarez@${SCHOOL.staffDomain}`,
         role: "teacher",
         status: "active",
         passwordHash,
@@ -306,7 +304,7 @@ export async function buildSeedDatabase(): Promise<Database> {
         createdAt,
       },
       ...[
-        ["u-rivera", "Jordan Rivera", "student", "11th"],
+        ["u-rivera", "Jordan Rivera", "jordan.rivera.123", "11th"],
         ["u-fitzgerald", "Maya Fitzgerald", "maya.fitzgerald.204", "11th"],
         ["u-park", "Devin Park", "devin.park.088", "12th"],
         ["u-brooks", "Aaliyah Brooks", "aaliyah.brooks.317", "10th"],
@@ -314,8 +312,7 @@ export async function buildSeedDatabase(): Promise<Database> {
       ].map(([id, name, handle, grade]) => ({
         id: id!,
         name: name!,
-        email:
-          id === "u-rivera" ? "student@demo.clubbase.app" : `${handle}@${SCHOOL.studentDomain}`,
+        email: `${handle}@${SCHOOL.studentDomain}`,
         role: "student" as const,
         status: "active" as const,
         passwordHash,

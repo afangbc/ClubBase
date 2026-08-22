@@ -46,20 +46,6 @@ async function migrate(parsed: LegacyDatabase): Promise<Database> {
   next.tutorialSignups = next.tutorialSignups ?? [];
   next.schoolDepartures = next.schoolDepartures ?? [];
 
-  const neutralDemoEmails: Record<string, { from: string; to: string }> = {
-    "u-rivera": { from: "jordan.rivera.123@k12.friscoisd.org", to: "student@demo.clubbase.app" },
-    "u-alvarez": { from: "marcus.alvarez@friscoisd.org", to: "teacher@demo.clubbase.app" },
-    "u-nguyen": { from: "alicia.nguyen@friscoisd.org", to: "admin@demo.clubbase.app" },
-  };
-  next.users = next.users.map((user) => {
-    const replacement = neutralDemoEmails[user.id];
-    if (replacement && user.email.toLowerCase().includes("@demo."))
-      return { ...user, email: replacement.to };
-    return replacement && user.email.toLowerCase() === replacement.from
-      ? { ...user, email: replacement.to }
-      : user;
-  });
-
   next.clubs = (next.clubs ?? []).map((club) => {
     const legacy = club as Database["clubs"][number] & LegacyClub;
     if (legacy.schedule) return club;
