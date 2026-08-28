@@ -39,8 +39,8 @@ const prefRows: { key: keyof Prefs; label: string; hint: string }[] = [
   { key: "weeklyDigest", label: "Weekly digest", hint: "A Sunday summary of the week ahead." },
   {
     key: "calendarSync",
-    label: "Calendar sync",
-    hint: "Mirror my club events to my school calendar.",
+    label: "Calendar sync · Coming soon",
+    hint: "Soon you'll be able to mirror club events to your school calendar.",
   },
   {
     key: "directoryVisible",
