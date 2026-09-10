@@ -135,8 +135,7 @@ Built with:
 
 # Live Demo
 
-https://extracurricular-central.lovable.app
-
+https://club-base.app/
 ---
 
 # Running Locally
