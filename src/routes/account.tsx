@@ -36,7 +36,11 @@ const prefRows: { key: keyof Prefs; label: string; hint: string }[] = [
     label: "Club announcements",
     hint: "Posts from sponsors and club leaders.",
   },
-  { key: "weeklyDigest", label: "Weekly digest", hint: "A Sunday summary of the week ahead." },
+  {
+    key: "weeklyDigest",
+    label: "Weekly digest",
+    hint: "Show a seven-day summary of your upcoming meetings and events.",
+  },
   {
     key: "calendarSync",
     label: "Calendar sync · Coming soon",

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Building2,
+  BookOpenCheck,
   CalendarCheck,
   CalendarPlus,
   KeyRound,
@@ -25,7 +26,7 @@ const nav = [
 ] as const;
 
 export function AdminShell({ children }: { children: ReactNode }) {
-  const { session, school, ready, signOut, pendingStaff } = useSession();
+  const { session, school, ready, signOut, pendingStaff, prefs } = useSession();
   const navigate = useNavigate();
   const isAdmin = session?.role === "admin" && session.status === "active" && session.emailVerified;
 
@@ -101,6 +102,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
               )}
             </Link>
           ))}
+          {prefs.weeklyDigest && (
+            <Link
+              to="/admin/weekly-digest"
+              activeProps={{ className: "flow-nav-active text-brand" }}
+              inactiveProps={{ className: "opacity-70" }}
+              className="flow-nav-tab flex items-center gap-2 px-3.5 py-2.5 text-[15px] font-semibold"
+            >
+              <BookOpenCheck className="size-[18px]" />
+              Weekly Digest
+            </Link>
+          )}
         </nav>
       </header>
       <main className="page-content mx-auto max-w-6xl px-4 py-8">{children}</main>

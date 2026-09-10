@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Lock, Globe, Search, Check, Clock, ArrowRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
+import { EventReminder } from "@/components/EventReminder";
 import { SmoothCollapse } from "@/components/SmoothCollapse";
 import { CATEGORIES, type Club } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
@@ -49,6 +50,7 @@ function ClubsPage() {
 
   return (
     <div>
+      <EventReminder />
       <h1 className="text-4xl">Club Directory</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Every club at {school?.name ?? "your school"} is listed here — private ones too.

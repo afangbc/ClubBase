@@ -23,6 +23,7 @@ import { Route as RequestAdminRouteImport } from './routes/request-admin'
 import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as TutorialsRouteImport } from './routes/tutorials'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as WeeklyDigestRouteImport } from './routes/weekly-digest'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnnouncementsRouteImport } from './routes/admin.announcements'
 import { Route as AdminClubsRouteImport } from './routes/admin.clubs'
@@ -30,6 +31,7 @@ import { Route as AdminEventsRouteImport } from './routes/admin.events'
 import { Route as AdminTeachersRouteImport } from './routes/admin.teachers'
 import { Route as AdminTutorialsRouteImport } from './routes/admin.tutorials'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminWeeklyDigestRouteImport } from './routes/admin.weekly-digest'
 import { Route as ClubsClubIdRouteImport } from './routes/clubs_.$clubId'
 import { Route as ManageIndexRouteImport } from './routes/manage.index'
 import { Route as ManageAnnouncementsRouteImport } from './routes/manage.announcements'
@@ -37,6 +39,7 @@ import { Route as ManageEventsRouteImport } from './routes/manage.events'
 import { Route as ManageRequestsRouteImport } from './routes/manage.requests'
 import { Route as ManageTeamsRouteImport } from './routes/manage.teams'
 import { Route as ManageTutorialsRouteImport } from './routes/manage.tutorials'
+import { Route as ManageWeeklyDigestRouteImport } from './routes/manage.weekly-digest'
 import { Route as TeamsTeamIdRouteImport } from './routes/teams_.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -109,6 +112,11 @@ const VerifyEmailRoute = VerifyEmailRouteImport.update({
   path: '/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WeeklyDigestRoute = WeeklyDigestRouteImport.update({
+  id: '/weekly-digest',
+  path: '/weekly-digest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -142,6 +150,11 @@ const AdminTutorialsRoute = AdminTutorialsRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminWeeklyDigestRoute = AdminWeeklyDigestRouteImport.update({
+  id: '/weekly-digest',
+  path: '/weekly-digest',
   getParentRoute: () => AdminRoute,
 } as any)
 const ClubsClubIdRoute = ClubsClubIdRouteImport.update({
@@ -179,6 +192,11 @@ const ManageTutorialsRoute = ManageTutorialsRouteImport.update({
   path: '/tutorials',
   getParentRoute: () => ManageRoute,
 } as any)
+const ManageWeeklyDigestRoute = ManageWeeklyDigestRouteImport.update({
+  id: '/weekly-digest',
+  path: '/weekly-digest',
+  getParentRoute: () => ManageRoute,
+} as any)
 const TeamsTeamIdRoute = TeamsTeamIdRouteImport.update({
   id: '/teams_/$teamId',
   path: '/teams/$teamId',
@@ -200,18 +218,21 @@ export interface FileRoutesByFullPath {
   '/teams': typeof TeamsRoute
   '/tutorials': typeof TutorialsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/weekly-digest': typeof WeeklyDigestRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/clubs': typeof AdminClubsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/teachers': typeof AdminTeachersRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/weekly-digest': typeof AdminWeeklyDigestRoute
   '/clubs/$clubId': typeof ClubsClubIdRoute
   '/manage/announcements': typeof ManageAnnouncementsRoute
   '/manage/events': typeof ManageEventsRoute
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/manage/weekly-digest': typeof ManageWeeklyDigestRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/admin/': typeof AdminIndexRoute
   '/manage/': typeof ManageIndexRoute
@@ -229,18 +250,21 @@ export interface FileRoutesByTo {
   '/teams': typeof TeamsRoute
   '/tutorials': typeof TutorialsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/weekly-digest': typeof WeeklyDigestRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/clubs': typeof AdminClubsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/teachers': typeof AdminTeachersRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/weekly-digest': typeof AdminWeeklyDigestRoute
   '/clubs/$clubId': typeof ClubsClubIdRoute
   '/manage/announcements': typeof ManageAnnouncementsRoute
   '/manage/events': typeof ManageEventsRoute
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/manage/weekly-digest': typeof ManageWeeklyDigestRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
   '/admin': typeof AdminIndexRoute
   '/manage': typeof ManageIndexRoute
@@ -261,18 +285,21 @@ export interface FileRoutesById {
   '/teams': typeof TeamsRoute
   '/tutorials': typeof TutorialsRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/weekly-digest': typeof WeeklyDigestRoute
   '/admin/announcements': typeof AdminAnnouncementsRoute
   '/admin/clubs': typeof AdminClubsRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/teachers': typeof AdminTeachersRoute
   '/admin/tutorials': typeof AdminTutorialsRoute
   '/admin/users': typeof AdminUsersRoute
+  '/admin/weekly-digest': typeof AdminWeeklyDigestRoute
   '/clubs_/$clubId': typeof ClubsClubIdRoute
   '/manage/announcements': typeof ManageAnnouncementsRoute
   '/manage/events': typeof ManageEventsRoute
   '/manage/requests': typeof ManageRequestsRoute
   '/manage/teams': typeof ManageTeamsRoute
   '/manage/tutorials': typeof ManageTutorialsRoute
+  '/manage/weekly-digest': typeof ManageWeeklyDigestRoute
   '/teams_/$teamId': typeof TeamsTeamIdRoute
   '/admin/': typeof AdminIndexRoute
   '/manage/': typeof ManageIndexRoute
@@ -294,18 +321,21 @@ export interface FileRouteTypes {
     | '/teams'
     | '/tutorials'
     | '/verify-email'
+    | '/weekly-digest'
     | '/admin/announcements'
     | '/admin/clubs'
     | '/admin/events'
     | '/admin/teachers'
     | '/admin/tutorials'
     | '/admin/users'
+    | '/admin/weekly-digest'
     | '/clubs/$clubId'
     | '/manage/announcements'
     | '/manage/events'
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/manage/weekly-digest'
     | '/teams/$teamId'
     | '/admin/'
     | '/manage/'
@@ -323,18 +353,21 @@ export interface FileRouteTypes {
     | '/teams'
     | '/tutorials'
     | '/verify-email'
+    | '/weekly-digest'
     | '/admin/announcements'
     | '/admin/clubs'
     | '/admin/events'
     | '/admin/teachers'
     | '/admin/tutorials'
     | '/admin/users'
+    | '/admin/weekly-digest'
     | '/clubs/$clubId'
     | '/manage/announcements'
     | '/manage/events'
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/manage/weekly-digest'
     | '/teams/$teamId'
     | '/admin'
     | '/manage'
@@ -354,18 +387,21 @@ export interface FileRouteTypes {
     | '/teams'
     | '/tutorials'
     | '/verify-email'
+    | '/weekly-digest'
     | '/admin/announcements'
     | '/admin/clubs'
     | '/admin/events'
     | '/admin/teachers'
     | '/admin/tutorials'
     | '/admin/users'
+    | '/admin/weekly-digest'
     | '/clubs_/$clubId'
     | '/manage/announcements'
     | '/manage/events'
     | '/manage/requests'
     | '/manage/teams'
     | '/manage/tutorials'
+    | '/manage/weekly-digest'
     | '/teams_/$teamId'
     | '/admin/'
     | '/manage/'
@@ -386,6 +422,7 @@ export interface RootRouteChildren {
   TeamsRoute: typeof TeamsRoute
   TutorialsRoute: typeof TutorialsRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  WeeklyDigestRoute: typeof WeeklyDigestRoute
   ClubsClubIdRoute: typeof ClubsClubIdRoute
   TeamsTeamIdRoute: typeof TeamsTeamIdRoute
 }
@@ -490,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/weekly-digest': {
+      id: '/weekly-digest'
+      path: '/weekly-digest'
+      fullPath: '/weekly-digest'
+      preLoaderRoute: typeof WeeklyDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -537,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/weekly-digest': {
+      id: '/admin/weekly-digest'
+      path: '/weekly-digest'
+      fullPath: '/admin/weekly-digest'
+      preLoaderRoute: typeof AdminWeeklyDigestRouteImport
       parentRoute: typeof AdminRoute
     }
     '/clubs_/$clubId': {
@@ -588,6 +639,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageTutorialsRouteImport
       parentRoute: typeof ManageRoute
     }
+    '/manage/weekly-digest': {
+      id: '/manage/weekly-digest'
+      path: '/weekly-digest'
+      fullPath: '/manage/weekly-digest'
+      preLoaderRoute: typeof ManageWeeklyDigestRouteImport
+      parentRoute: typeof ManageRoute
+    }
     '/teams_/$teamId': {
       id: '/teams_/$teamId'
       path: '/teams/$teamId'
@@ -605,6 +663,7 @@ interface AdminRouteChildren {
   AdminTeachersRoute: typeof AdminTeachersRoute
   AdminTutorialsRoute: typeof AdminTutorialsRoute
   AdminUsersRoute: typeof AdminUsersRoute
+  AdminWeeklyDigestRoute: typeof AdminWeeklyDigestRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -615,6 +674,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminTeachersRoute: AdminTeachersRoute,
   AdminTutorialsRoute: AdminTutorialsRoute,
   AdminUsersRoute: AdminUsersRoute,
+  AdminWeeklyDigestRoute: AdminWeeklyDigestRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -626,6 +686,7 @@ interface ManageRouteChildren {
   ManageRequestsRoute: typeof ManageRequestsRoute
   ManageTeamsRoute: typeof ManageTeamsRoute
   ManageTutorialsRoute: typeof ManageTutorialsRoute
+  ManageWeeklyDigestRoute: typeof ManageWeeklyDigestRoute
   ManageIndexRoute: typeof ManageIndexRoute
 }
 
@@ -635,6 +696,7 @@ const ManageRouteChildren: ManageRouteChildren = {
   ManageRequestsRoute: ManageRequestsRoute,
   ManageTeamsRoute: ManageTeamsRoute,
   ManageTutorialsRoute: ManageTutorialsRoute,
+  ManageWeeklyDigestRoute: ManageWeeklyDigestRoute,
   ManageIndexRoute: ManageIndexRoute,
 }
 
@@ -656,6 +718,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamsRoute: TeamsRoute,
   TutorialsRoute: TutorialsRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  WeeklyDigestRoute: WeeklyDigestRoute,
   ClubsClubIdRoute: ClubsClubIdRoute,
   TeamsTeamIdRoute: TeamsTeamIdRoute,
 }

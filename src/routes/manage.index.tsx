@@ -6,6 +6,7 @@ import { SmoothCollapse } from "@/components/SmoothCollapse";
 import type { Club } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
 import { campusRooms, staffClubs } from "@/lib/staff";
+import { EventReminder } from "@/components/EventReminder";
 
 export const Route = createFileRoute("/manage/")({
   head: () => ({
@@ -41,6 +42,7 @@ function Dashboard() {
 
   return (
     <div>
+      <EventReminder />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl">Sponsor console</h1>

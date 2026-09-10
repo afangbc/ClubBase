@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TextField } from "@/components/form-fields";
 import { CLUBBASE_COLORS } from "@/lib/campus-data";
 import { useSession } from "@/lib/session";
+import { EventReminder } from "@/components/EventReminder";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -74,6 +75,7 @@ function AdminHome() {
 
   return (
     <div>
+      <EventReminder />
       <h1 className="text-4xl">Campus console</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {school?.name ?? "Your school"} · {school?.district ?? "Your district"} — you control the
